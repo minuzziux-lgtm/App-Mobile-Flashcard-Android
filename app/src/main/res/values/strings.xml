@@ -1,3 +1,15 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">MY-DECK</string>
+    <string name="welcome_title">MY-DECK</string>
+    <string name="welcome_signup_prompt">Ainda não tem uma conta?</string>
+    <string name="welcome_signup_action">Criar conta</string>
+    <string name="welcome_teacher">Continuar como professor</string>
+    <string name="welcome_student">Continuar como aluno</string>
+    <string name="welcome_description">Estude com flashcards.\nOrganize decks e turmas.\nAcompanhe seu progresso.\nTudo no</string>
+    <string name="welcome_brand">MY-DECK.</string>
+    <string name="welcome_tag_flashcards">FLASHCARDS</string>
+    <string name="welcome_tag_classes">TURMAS</string>
+    <string name="welcome_tag_decks">DECKS</string>
+    <string name="welcome_tag_reviews">REVISÕES</string>
+    <string name="welcome_tag_performance">DESEMPENHO</string>
 </resources>
