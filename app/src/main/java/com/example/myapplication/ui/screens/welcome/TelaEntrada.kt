@@ -54,7 +54,7 @@ private val corSecundaria = Color(0xFF595959)
 private val corBotao = Color(0xFFF1F1F1)
 
 @Composable
-fun TelaEntrada(onCriarConta: () -> Unit = {}) {
+fun TelaEntrada(onCriarConta: () -> Unit = {}, onAlunoClick: () -> Unit = {}) {
     val descricao = stringResource(R.string.welcome_description)
     val marca = stringResource(R.string.welcome_brand)
     val cadastro = stringResource(R.string.welcome_signup_prompt)
@@ -130,7 +130,8 @@ fun TelaEntrada(onCriarConta: () -> Unit = {}) {
             Spacer(Modifier.height(10.dp))
 
             OpcaoEntrada(
-                stringResource(R.string.welcome_student)
+                stringResource(R.string.welcome_student),
+                onClick = onAlunoClick
             )
 
             Spacer(Modifier.height(18.dp))
@@ -186,11 +187,12 @@ private fun Etiqueta(texto: String) {
 }
 
 @Composable
-private fun OpcaoEntrada(texto: String) {
+private fun OpcaoEntrada(texto: String, onClick: (() -> Unit)? = null) {
     MyDeckButton(
         label = texto,
         variant = MyDeckButtonVariant.LIGHT,
-        emphasizeLastWord = true
+        emphasizeLastWord = true,
+        onClick = onClick
     )
 }
 
