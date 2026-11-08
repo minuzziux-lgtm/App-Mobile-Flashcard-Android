@@ -1,0 +1,31 @@
+name: Auth verification
+
+on:
+  push:
+    branches:
+      - feat/auth-firebase-07nov
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Android SDK
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          if [ -z "$SDKMANAGER" ]; then echo 'sdkmanager not found'; exit 1; fi
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platforms;android-37.0" "build-tools;36.0.0" --channel=3
+      - name: Compile and test
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --console=plain :app:assembleDebug :app:testDebugUnitTest
