@@ -23,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.myapplication.ui.screens.auth.TelaPerfilAluno
 import com.example.myapplication.ui.navigation.BottomFrostedBackdrop
 import com.example.myapplication.ui.navigation.MyDeckBottomBar
 import com.example.myapplication.ui.navigation.StudentTab
@@ -30,7 +31,7 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 
 @Composable
-fun StudentHomeShell() {
+fun StudentHomeShell(onLogout: () -> Unit = {}) {
     val nav = rememberNavController()
     val currentEntry by nav.currentBackStackEntryAsState()
     val hazeState = remember { HazeState() }
@@ -72,7 +73,7 @@ fun StudentHomeShell() {
                     StudentSection("Decks.", "Seus decks aparecerão aqui quando estiverem disponíveis.")
                 }
                 composable(StudentTab.PROFILE.route) {
-                    StudentSection("Perfil.", "As informações da sua conta aparecerão aqui.")
+                    TelaPerfilAluno(onSair = onLogout)
                 }
             }
         }
