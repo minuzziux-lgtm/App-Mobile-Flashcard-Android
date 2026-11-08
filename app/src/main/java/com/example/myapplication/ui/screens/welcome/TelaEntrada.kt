@@ -58,7 +58,8 @@ fun TelaEntrada(
     onCriarConta: () -> Unit = {},
     onAlunoClick: () -> Unit = {},
     onProfessorClick: () -> Unit = {},
-    onProfessorPreview: (() -> Unit)? = null
+    onProfessorPreview: (() -> Unit)? = null,
+    onAlunoPreview: (() -> Unit)? = null
 ) {
     val descricao = stringResource(R.string.welcome_description)
     val marca = stringResource(R.string.welcome_brand)
@@ -172,6 +173,21 @@ fun TelaEntrada(
                 BasicText(
                     "Prévia do professor · sem Firebase",
                     modifier = Modifier.clickable(onClick = onProfessorPreview)
+                        .padding(vertical = 12.dp),
+                    style = TextStyle(
+                        fontFamily = fonteMyDeck,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = corSecundaria,
+                        textDecoration = TextDecoration.Underline
+                    )
+                )
+            }
+            if (onAlunoPreview != null) {
+                Spacer(Modifier.height(2.dp))
+                BasicText(
+                    "Prévia do aluno · sem Firebase",
+                    modifier = Modifier.clickable(onClick = onAlunoPreview)
                         .padding(vertical = 12.dp),
                     style = TextStyle(
                         fontFamily = fonteMyDeck,

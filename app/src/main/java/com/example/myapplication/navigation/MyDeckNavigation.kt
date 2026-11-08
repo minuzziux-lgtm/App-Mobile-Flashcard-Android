@@ -49,6 +49,11 @@ fun MyDeckNavigation() {
                     (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
                 ) {
                     { navController.navigate("area-professor") }
+                } else null,
+                onAlunoPreview = if (
+                    (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+                ) {
+                    { navController.navigate("home-aluno") }
                 } else null
             )
         }
