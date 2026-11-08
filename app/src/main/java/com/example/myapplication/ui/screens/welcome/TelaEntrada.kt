@@ -1,10 +1,12 @@
 package com.example.myapplication.ui.screens.welcome
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -26,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -36,6 +40,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
+import com.example.myapplication.ui.design.MyDeckButton
+import com.example.myapplication.ui.design.MyDeckButtonVariant
 
 private val fonteMyDeck = FontFamily(
     Font(R.font.inter_regular, FontWeight.Normal),
@@ -48,7 +54,7 @@ private val corSecundaria = Color(0xFF595959)
 private val corBotao = Color(0xFFF1F1F1)
 
 @Composable
-fun TelaEntrada() {
+fun TelaEntrada(onCriarConta: () -> Unit = {}) {
     val descricao = stringResource(R.string.welcome_description)
     val marca = stringResource(R.string.welcome_brand)
     val cadastro = stringResource(R.string.welcome_signup_prompt)
@@ -108,7 +114,7 @@ fun TelaEntrada() {
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 funcionalidades.forEach { funcionalidade ->
                     Etiqueta(funcionalidade)
@@ -129,29 +135,30 @@ fun TelaEntrada() {
 
             Spacer(Modifier.height(18.dp))
 
-            BasicText(
-                text = buildAnnotatedString {
-                    append(cadastro)
-                    append(" ")
-
-                    withStyle(
-                        SpanStyle(
-                            color = corPrincipal,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    ) {
-                        append(criarConta)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                style = TextStyle(
-                    fontFamily = fonteMyDeck,
-                    fontSize = 13.sp,
-                    lineHeight = 20.sp,
-                    color = corSecundaria,
-                    textAlign = TextAlign.Start
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                BasicText(
+                    text = cadastro,
+                    style = TextStyle(
+                        fontFamily = fonteMyDeck,
+                        fontSize = 13.sp,
+                        lineHeight = 20.sp,
+                        color = corSecundaria
+                    )
                 )
-            )
+                Spacer(Modifier.width(5.dp))
+                BasicText(
+                    text = criarConta,
+                    modifier = Modifier.clickable(onClick = onCriarConta),
+                    style = TextStyle(
+                        fontFamily = fonteMyDeck,
+                        fontSize = 13.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = corPrincipal,
+                        textDecoration = TextDecoration.Underline
+                    )
+                )
+            }
         }
     }
 }
@@ -180,43 +187,11 @@ private fun Etiqueta(texto: String) {
 
 @Composable
 private fun OpcaoEntrada(texto: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .background(
-                color = corBotao,
-                shape = RoundedCornerShape(50)
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        BasicText(
-            text = buildAnnotatedString {
-                append(texto.substringBeforeLast(" "))
-                append(" ")
-
-                withStyle(
-                    SpanStyle(
-                        fontWeight = FontWeight.Bold,
-                        color = corPrincipal
-                    )
-                ) {
-                    append(texto.substringAfterLast(" "))
-                }
-            },
-            modifier = Modifier.padding(
-                horizontal = 16.dp,
-                vertical = 16.dp
-            ),
-            style = TextStyle(
-                fontFamily = fonteMyDeck,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF414141),
-                textAlign = TextAlign.Center
-            )
-        )
-    }
+    MyDeckButton(
+        label = texto,
+        variant = MyDeckButtonVariant.LIGHT,
+        emphasizeLastWord = true
+    )
 }
 
 @Preview(showBackground = true, widthDp = 393, heightDp = 852)
