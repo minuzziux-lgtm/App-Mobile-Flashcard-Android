@@ -10,9 +10,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.demo.DemoCard
+import com.example.myapplication.demo.DemoCardDraft
 import com.example.myapplication.demo.DemoClass
 import com.example.myapplication.demo.DemoDeck
-import com.example.myapplication.demo.DemoCard
 import com.example.myapplication.ui.design.MyDeckButton
 import com.example.myapplication.ui.design.MyDeckButtonVariant
 
@@ -26,13 +27,10 @@ internal fun TeacherDecksSection(
     onSelectClass: (String) -> Unit,
     onCreateDeck: (String, String) -> Unit,
     onSelectDeck: (String) -> Unit,
-    onAddCard: (String, String, String, List<String>) -> Unit,
+    onAddCard: (String, DemoCardDraft) -> Unit,
     onOpenClasses: () -> Unit
 ) {
     var title by rememberSaveable { mutableStateOf("") }
-    var question by rememberSaveable { mutableStateOf("") }
-    var answer by rememberSaveable { mutableStateOf("") }
-    var tags by rememberSaveable { mutableStateOf("") }
     val selectedClass = classes.firstOrNull { it.id == selectedClassId } ?: classes.firstOrNull()
     val classDecks = decks.filter { it.classId == selectedClass?.id }
     val selectedDeck = classDecks.firstOrNull { it.id == selectedDeckId } ?: classDecks.firstOrNull()
@@ -87,22 +85,11 @@ internal fun TeacherDecksSection(
                 Spacer(Modifier.height(12.dp))
                 TeacherBody("Deck selecionado: " + selectedDeck?.title.orEmpty())
                 Spacer(Modifier.height(19.dp))
-                TeacherInput("Pergunta", "Digite a pergunta", question) { question = it }
-                Spacer(Modifier.height(18.dp))
-                TeacherInput("Resposta", "Digite a resposta", answer) { answer = it }
-                Spacer(Modifier.height(18.dp))
-                TeacherInput("Tags (opcional)", "Ex.: matemática, frações", tags) { tags = it }
-                Spacer(Modifier.height(20.dp))
-                MyDeckButton(
-                    "Adicionar cartão", MyDeckButtonVariant.DARK,
-                    onClick = if (question.isNotBlank() && answer.isNotBlank() && selectedDeck != null) ({
-                        val cleanTags = tags.split(',').map { it.trim() }.filter { it.isNotEmpty() }.distinct()
-                        onAddCard(selectedDeck.id, question.trim(), answer.trim(), cleanTags)
-                        question = ""
-                        answer = ""
-                        tags = ""
-                    }) else null
-                )
+                if (selectedDeck != null) {
+                    androidx.compose.runtime.key(selectedDeck.id) {
+                        TeacherCardEditor { draft -> onAddCard(selectedDeck.id, draft) }
+                    }
+                }
                 Spacer(Modifier.height(43.dp))
                 TeacherLabel("05  /  CARTÕES  ·  " + selectedCards.size)
                 Spacer(Modifier.height(12.dp))
@@ -110,7 +97,12 @@ internal fun TeacherDecksSection(
                     TeacherEmpty("Este deck ainda não possui cartões.")
                 } else {
                     selectedCards.forEach { card ->
-                        TeacherItemRow(card.question, "Resposta: " + card.answer)
+                        val details = buildString {
+                            append(card.type.label)
+                            if (card.answer.isNotBlank()) append("  ·  Resposta: " + card.answer)
+                            if (card.mediaLink != null) append("  ·  " + card.mediaLink.type.label + " por link")
+                        }
+                        TeacherItemRow(card.question, details)
                     }
                 }
             }

@@ -105,8 +105,8 @@ fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
                                 selectedDeckId = created.id
                             },
                             onSelectDeck = { selectedDeckId = it },
-                            onAddCard = { deckId, question, answer, tags ->
-                                store.addCard(deckId, question, answer, tags)
+                            onAddCard = { deckId, draft ->
+                                store.addCard(deckId, draft)
                             },
                             onOpenClasses = { tab = TeacherTab.CLASSES.name }
                         )
