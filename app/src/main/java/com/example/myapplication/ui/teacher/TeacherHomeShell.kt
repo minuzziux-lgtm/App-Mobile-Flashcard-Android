@@ -41,6 +41,7 @@ import com.example.myapplication.ui.design.MyDeckDesign
 import com.example.myapplication.ui.navigation.BottomFrostedBackdrop
 import com.example.myapplication.ui.navigation.MyDeckBottomBar
 import com.example.myapplication.ui.navigation.MyDeckNavItem
+import com.example.myapplication.ui.navigation.MyDeckTopBar
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import com.example.myapplication.demo.LocalMyDeckStore
@@ -65,23 +66,9 @@ fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
             modifier = Modifier.fillMaxSize()
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .hazeSource(hazeState),
-            contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 32.dp, bottom = 168.dp)
+            contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 112.dp, bottom = 168.dp)
         ) {
             item {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    TeacherLabel("MY-DECK  /  PROFESSOR")
-                    BasicText(
-                        "Sair",
-                        modifier = Modifier.clickable(role = Role.Button, onClick = onLogout)
-                            .padding(vertical = 12.dp, horizontal = 4.dp),
-                        style = teacherStyle(12, FontWeight.Medium, MyDeckDesign.secondary)
-                    )
-                }
-                Spacer(Modifier.height(54.dp))
                 when (activeTab) {
                     TeacherTab.HOME -> TeacherDashboard(
                         classes.size,
@@ -138,6 +125,15 @@ fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
                 }
             }
         }
+
+        MyDeckTopBar(
+            role = "PROFESSOR",
+            onLogout = onLogout,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(horizontal = 26.dp)
+        )
 
         BottomFrostedBackdrop(hazeState, Modifier.align(Alignment.BottomCenter))
         MyDeckBottomBar(

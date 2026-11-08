@@ -64,18 +64,10 @@ fun StudentSection(
     content: @Composable ColumnScope.() -> Unit = {}
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(start = 27.dp, end = 27.dp, top = 28.dp, bottom = 168.dp)
+        contentPadding = PaddingValues(start = 27.dp, end = 27.dp, top = 112.dp, bottom = 168.dp)
     ) {
         item {
             Column {
-                BasicText(
-                    text = "MY-DECK  /  ALUNO",
-                    style = TextStyle(
-                        fontFamily = MyDeckDesign.font, fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold, color = MyDeckDesign.ink
-                    )
-                )
-                Spacer(Modifier.height(70.dp))
                 BasicText(
                     text = title,
                     style = TextStyle(

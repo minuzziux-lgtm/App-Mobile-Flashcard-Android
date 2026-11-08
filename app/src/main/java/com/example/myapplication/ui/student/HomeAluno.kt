@@ -55,18 +55,9 @@ fun HomeAluno(
     LazyColumn(
         modifier = modifier.fillMaxSize().background(Color.White),
         state = listState,
-        contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 32.dp, bottom = 168.dp)
+        contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 112.dp, bottom = 168.dp)
     ) {
         item(key = "apresentacao") {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                EditorialLabel("MY-DECK")
-                EditorialLabel("ALUNO  /  INÍCIO")
-            }
-            Spacer(Modifier.height(79.dp))
             BasicText(
                 text = "Aprenda no\nseu ritmo.",
                 style = TextStyle(

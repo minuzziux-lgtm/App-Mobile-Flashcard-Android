@@ -28,6 +28,7 @@ import com.example.myapplication.demo.LocalMyDeckStore
 import com.example.myapplication.ui.navigation.BottomFrostedBackdrop
 import com.example.myapplication.ui.navigation.MyDeckBottomBar
 import com.example.myapplication.ui.navigation.MyDeckNavItem
+import com.example.myapplication.ui.navigation.MyDeckTopBar
 import com.example.myapplication.ui.navigation.StudentTab
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
@@ -95,6 +96,15 @@ fun StudentHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
                 }
             }
         }
+
+        MyDeckTopBar(
+            role = "ALUNO",
+            onLogout = onLogout,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(horizontal = 26.dp)
+        )
 
         BottomFrostedBackdrop(
             hazeState = hazeState,
