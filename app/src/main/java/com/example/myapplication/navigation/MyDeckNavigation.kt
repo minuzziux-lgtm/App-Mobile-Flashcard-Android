@@ -25,7 +25,7 @@ fun MyDeckNavigation() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val repository = remember(context) { FirebaseAuthRepository.create(context) }
-    val localStore = remember { LocalMyDeckStore() }
+    val localStore = remember(context) { LocalMyDeckStore(context) }
 
     fun exitToEntry() {
         repository?.signOut()

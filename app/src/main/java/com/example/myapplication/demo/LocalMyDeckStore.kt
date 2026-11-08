@@ -1,15 +1,23 @@
 package com.example.myapplication.demo
 
+import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
 import java.security.SecureRandom
 import java.util.Locale
 import java.util.UUID
 
-class LocalMyDeckStore {
+class LocalMyDeckStore(context: Context? = null) {
+    private val persistence = context?.let(::DemoLocalPersistence)
     val classes = mutableStateListOf<DemoClass>()
     val decks = mutableStateListOf<DemoDeck>()
     val cards = mutableStateListOf<DemoCard>()
     val enrolledClassIds = mutableStateListOf<String>()
+
+    init {
+        persistence?.restore(this)
+    }
+
+    private fun persist() = persistence?.save(this)
 
     private val random = SecureRandom()
     private val alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -26,6 +34,7 @@ class LocalMyDeckStore {
         require(name.isNotBlank())
         val classroom = DemoClass(UUID.randomUUID().toString(), name.trim(), generateClassCode())
         classes.add(classroom)
+        persist()
         return classroom
     }
 
@@ -33,6 +42,7 @@ class LocalMyDeckStore {
         require(title.isNotBlank() && classes.any { it.id == classId })
         val deck = DemoDeck(UUID.randomUUID().toString(), classId, title.trim())
         decks.add(deck)
+        persist()
         return deck
     }
 
@@ -58,6 +68,7 @@ class LocalMyDeckStore {
             mediaLink = draft.mediaLink?.copy(url = draft.mediaLink.url.trim())
         )
         cards.add(card)
+        persist()
         return card
     }
 
@@ -66,6 +77,7 @@ class LocalMyDeckStore {
         val classroom = classes.firstOrNull { it.joinCode == code } ?: return JoinClassResult.NotFound
         if (classroom.id in enrolledClassIds) return JoinClassResult.AlreadyJoined
         enrolledClassIds.add(classroom.id)
+        persist()
         return JoinClassResult.Joined(classroom)
     }
 }
