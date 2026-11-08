@@ -64,6 +64,21 @@ class LocalMyDeckStore(context: Context? = null) {
         return deck
     }
 
+    fun renameDeck(deckId: String, title: String) {
+        require(title.isNotBlank())
+        val index = decks.indexOfFirst { it.id == deckId }
+        require(index >= 0)
+        decks[index] = decks[index].copy(title = title.trim())
+        persist()
+    }
+
+    fun deleteDeck(deckId: String) {
+        require(decks.any { it.id == deckId })
+        cards.removeAll { it.deckId == deckId }
+        decks.removeAll { it.id == deckId }
+        persist()
+    }
+
     fun addCard(deckId: String, question: String, answer: String, tags: List<String>): DemoCard =
         addCard(deckId, DemoCardDraft(DemoCardType.BASIC, question, answer, tags = tags))
 

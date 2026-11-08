@@ -112,6 +112,11 @@ fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
                                 val created = store.createDeck(classId, title)
                                 selectedDeckId = created.id
                             },
+                            onRenameDeck = store::renameDeck,
+                            onDeleteDeck = { id ->
+                                store.deleteDeck(id)
+                                if (selectedDeckId == id) selectedDeckId = null
+                            },
                             onSelectDeck = { selectedDeckId = it },
                             onAddCard = { deckId, draft ->
                                 store.addCard(deckId, draft)
