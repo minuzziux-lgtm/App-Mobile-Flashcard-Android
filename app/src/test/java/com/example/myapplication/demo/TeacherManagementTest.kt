@@ -35,4 +35,18 @@ class TeacherManagementTest {
         assertTrue(store.decks.isEmpty())
         assertTrue(store.cards.isEmpty())
     }
+
+    @Test fun generalDeckAssignmentIsControlledByClass() {
+        val store = LocalMyDeckStore()
+        val first = store.createClass("Primeira")
+        val second = store.createClass("Segunda")
+        val general = store.createDeck("", "Vocabulário")
+        assertTrue(general.assignedClassIds.isEmpty())
+        store.assignDeckToClasses(general.id, listOf(first.id))
+        assertEquals(listOf(first.id), store.decks.single().assignedClassIds)
+        store.deleteClass(first.id)
+        assertTrue(store.decks.single().assignedClassIds.isEmpty())
+        store.assignDeckToClasses(general.id, listOf(second.id))
+        assertEquals(listOf(second.id), store.decks.single().assignedClassIds)
+    }
 }

@@ -71,7 +71,9 @@ fun StudentHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
                 composable(StudentTab.CLASSES.route) {
                     StudentClassesScreen(
                         classes = store.classes.filter { it.id in store.enrolledClassIds },
-                        deckCounts = store.decks.groupingBy { it.classId }.eachCount(),
+                        deckCounts = store.classes.associate { classroom ->
+                            classroom.id to store.decks.count { classroom.id in it.assignedClassIds }
+                        },
                         onJoinClass = store::joinByCode,
                         onOpenDecks = { classId ->
                             selectedClassId = classId

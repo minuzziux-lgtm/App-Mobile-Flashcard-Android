@@ -17,7 +17,12 @@ internal class DemoLocalPersistence(context: Context) {
                 store.classes.add(DemoClass(item.getString("id"), item.getString("name"), item.getString("joinCode")))
             }
             for (item in root.optJSONArray("decks").items()) {
-                store.decks.add(DemoDeck(item.getString("id"), item.getString("classId"), item.getString("title")))
+                val originalClassId = item.getString("classId")
+                val assigned = item.optJSONArray("assignedClassIds")?.let { it.texts() }
+                    ?: if (originalClassId.isBlank()) emptyList() else listOf(originalClassId)
+                store.decks.add(DemoDeck(
+                    item.getString("id"), originalClassId, item.getString("title"), assigned
+                ))
             }
             for (item in root.optJSONArray("cards").items()) {
                 val media = item.optJSONObject("mediaLink")?.let {
@@ -67,7 +72,8 @@ internal class DemoLocalPersistence(context: Context) {
         })
         snapshot.put("decks", JSONArray().apply {
             store.decks.forEach { value ->
-                put(JSONObject().put("id", value.id).put("classId", value.classId).put("title", value.title))
+                put(JSONObject().put("id", value.id).put("classId", value.classId)
+                    .put("title", value.title).put("assignedClassIds", JSONArray(value.assignedClassIds)))
             }
         })
         snapshot.put("cards", JSONArray().apply {

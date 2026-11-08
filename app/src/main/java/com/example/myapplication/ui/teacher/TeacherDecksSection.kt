@@ -34,6 +34,7 @@ internal fun TeacherDecksSection(
     onSelectClass: (String) -> Unit,
     onCreateDeck: (String, String) -> Unit,
     onRenameDeck: (String, String) -> Unit,
+    onAssignDeck: (String, List<String>) -> Unit,
     onDeleteDeck: (String) -> Unit,
     onSelectDeck: (String) -> Unit,
     onAddCard: (String, DemoCardDraft) -> Unit,
@@ -43,13 +44,17 @@ internal fun TeacherDecksSection(
     onOpenClasses: () -> Unit
 ) {
     var title by rememberSaveable { mutableStateOf("") }
+    var createAsGeneral by rememberSaveable { mutableStateOf(false) }
     var editingDeckId by rememberSaveable { mutableStateOf<String?>(null) }
     var deletingDeckId by rememberSaveable { mutableStateOf<String?>(null) }
     var editedTitle by rememberSaveable { mutableStateOf("") }
     var editingCardId by rememberSaveable { mutableStateOf<String?>(null) }
     var deletingCardId by rememberSaveable { mutableStateOf<String?>(null) }
     val selectedClass = classes.firstOrNull { it.id == selectedClassId } ?: classes.firstOrNull()
-    val classDecks = decks.filter { it.classId == selectedClass?.id }
+    val classDecks = decks.filter { deck ->
+        deck.classId.isBlank() || deck.classId == selectedClass?.id ||
+            (selectedClass != null && selectedClass.id in deck.assignedClassIds)
+    }
     val selectedDeck = classDecks.firstOrNull { it.id == selectedDeckId } ?: classDecks.firstOrNull()
     val selectedCards = cards.filter { it.deckId == selectedDeck?.id }
 
@@ -58,9 +63,19 @@ internal fun TeacherDecksSection(
         Spacer(Modifier.height(14.dp))
         TeacherBody("Gerencie os decks e cartões das suas turmas.")
         Spacer(Modifier.height(35.dp))
-        if (classes.isEmpty()) {
-            TeacherEmpty("Crie uma turma antes de adicionar decks.")
-            MyDeckButton("Ir para turmas", MyDeckButtonVariant.DARK, onClick = onOpenClasses)
+        if (classes.isEmpty() && decks.isEmpty()) {
+            TeacherBody("Crie um deck geral agora e atribua turmas quando estiverem disponíveis.")
+            Spacer(Modifier.height(18.dp))
+            TeacherInput("Nome do deck geral", "Ex.: Inglês básico", title) { title = it }
+            Spacer(Modifier.height(15.dp))
+            MyDeckButton("Criar deck geral", MyDeckButtonVariant.DARK,
+                onClick = if (title.isNotBlank()) ({
+                    onCreateDeck("", title.trim())
+                    title = ""
+                }) else null
+            )
+            Spacer(Modifier.height(12.dp))
+            MyDeckButton("Criar turma", MyDeckButtonVariant.LIGHT, onClick = onOpenClasses)
         } else {
             TeacherLabel("01  /  SELECIONAR TURMA")
             Spacer(Modifier.height(14.dp))
@@ -71,19 +86,29 @@ internal fun TeacherDecksSection(
             }
             Spacer(Modifier.height(27.dp))
             TeacherLabel("02  /  NOVO DECK")
+            Spacer(Modifier.height(12.dp))
+            TeacherSelectionRow("Deck geral", createAsGeneral || classes.isEmpty()) {
+                createAsGeneral = true
+            }
+            if (classes.isNotEmpty()) {
+                TeacherSelectionRow("Da turma selecionada", !createAsGeneral) {
+                    createAsGeneral = false
+                }
+            }
             Spacer(Modifier.height(18.dp))
             TeacherInput("Nome do deck", "Ex.: Frações", title) { title = it }
             Spacer(Modifier.height(20.dp))
             MyDeckButton("Criar deck", MyDeckButtonVariant.DARK,
-                onClick = if (title.isNotBlank() && selectedClass != null) ({
-                    onCreateDeck(selectedClass.id, title.trim())
+                onClick = if (title.isNotBlank() && (createAsGeneral || classes.isEmpty() || selectedClass != null)) ({
+                    val classId = if (createAsGeneral || classes.isEmpty()) "" else selectedClass?.id.orEmpty()
+                    onCreateDeck(classId, title.trim())
                     title = ""
                 }) else null
             )
             Spacer(Modifier.height(45.dp))
             TeacherDivider()
             Spacer(Modifier.height(24.dp))
-            TeacherLabel("03  /  DECKS DA TURMA  ·  " + classDecks.size)
+            TeacherLabel("03  /  DECKS DISPONÍVEIS  ·  " + classDecks.size)
             Spacer(Modifier.height(14.dp))
             if (classDecks.isEmpty()) {
                 TeacherEmpty("Nenhum deck criado para esta turma.")
@@ -131,6 +156,22 @@ internal fun TeacherDecksSection(
                 Spacer(Modifier.height(12.dp))
                 TeacherBody("Deck selecionado: " + selectedDeck?.title.orEmpty())
                 Spacer(Modifier.height(18.dp))
+                if (selectedDeck != null && classes.isNotEmpty()) {
+                    TeacherLabel("ATRIBUIR DECK A TURMAS")
+                    Spacer(Modifier.height(8.dp))
+                    TeacherBody("Somente alunos matriculados nas turmas selecionadas verão este deck.")
+                    Spacer(Modifier.height(12.dp))
+                    classes.forEach { classroom ->
+                        val isAssigned = classroom.id in selectedDeck.assignedClassIds
+                        TeacherSelectionRow(classroom.name, isAssigned) {
+                            val ids = if (isAssigned) {
+                                selectedDeck.assignedClassIds.filterNot { it == classroom.id }
+                            } else selectedDeck.assignedClassIds + classroom.id
+                            onAssignDeck(selectedDeck.id, ids)
+                        }
+                    }
+                    Spacer(Modifier.height(21.dp))
+                }
                 if (selectedDeck != null) {
                     if (editingCardId != null) {
                         TeacherAction("Cancelar edição") { editingCardId = null }

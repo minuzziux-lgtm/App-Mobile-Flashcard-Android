@@ -49,16 +49,27 @@ class LocalMyDeckStore(context: Context? = null) {
 
     fun deleteClass(classId: String) {
         require(classes.any { it.id == classId })
-        val deckIds = decks.filter { it.classId == classId }.map { it.id }.toSet()
+        val deckIds = decks.filter {
+            it.classId == classId && it.assignedClassIds.none { assigned -> assigned != classId }
+        }.map { it.id }.toSet()
         cards.removeAll { it.deckId in deckIds }
-        decks.removeAll { it.id in deckIds }
+        for (index in decks.indices.reversed()) {
+            val deck = decks[index]
+            if (deck.id in deckIds) decks.removeAt(index)
+            else if (deck.classId == classId || classId in deck.assignedClassIds) {
+                decks[index] = deck.copy(
+                    classId = if (deck.classId == classId) "" else deck.classId,
+                    assignedClassIds = deck.assignedClassIds.filterNot { it == classId }
+                )
+            }
+        }
         enrolledClassIds.remove(classId)
         classes.removeAll { it.id == classId }
         persist()
     }
 
     fun createDeck(classId: String, title: String): DemoDeck {
-        require(title.isNotBlank() && classes.any { it.id == classId })
+        require(title.isNotBlank() && (classId.isBlank() || classes.any { it.id == classId }))
         val deck = DemoDeck(UUID.randomUUID().toString(), classId, title.trim())
         decks.add(deck)
         persist()
@@ -70,6 +81,15 @@ class LocalMyDeckStore(context: Context? = null) {
         val index = decks.indexOfFirst { it.id == deckId }
         require(index >= 0)
         decks[index] = decks[index].copy(title = title.trim())
+        persist()
+    }
+
+    fun assignDeckToClasses(deckId: String, classIds: List<String>) {
+        val index = decks.indexOfFirst { it.id == deckId }
+        require(index >= 0)
+        val ids = classIds.distinct()
+        require(ids.all { id -> classes.any { it.id == id } })
+        decks[index] = decks[index].copy(assignedClassIds = ids)
         persist()
     }
 

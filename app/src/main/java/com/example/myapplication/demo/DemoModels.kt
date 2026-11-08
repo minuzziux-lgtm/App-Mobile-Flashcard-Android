@@ -1,7 +1,12 @@
 package com.example.myapplication.demo
 
 data class DemoClass(val id: String, val name: String, val joinCode: String)
-data class DemoDeck(val id: String, val classId: String, val title: String)
+data class DemoDeck(
+    val id: String,
+    val classId: String,
+    val title: String,
+    val assignedClassIds: List<String> = if (classId.isBlank()) emptyList() else listOf(classId)
+)
 
 enum class DemoCardType(val label: String) {
     BASIC("Pergunta e resposta"),

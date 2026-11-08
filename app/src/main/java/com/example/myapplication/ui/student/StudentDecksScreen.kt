@@ -38,7 +38,9 @@ fun StudentDecksScreen(
 ) {
     var selectedDeckId by rememberSaveable { mutableStateOf<String?>(null) }
     val selectedClass = classes.firstOrNull { it.id == selectedClassId } ?: classes.firstOrNull()
-    val classDecks = decks.filter { it.classId == selectedClass?.id }
+    val classDecks = decks.filter {
+        selectedClass != null && selectedClass.id in it.assignedClassIds
+    }
     val selectedDeck = classDecks.firstOrNull { it.id == selectedDeckId }
     val uriHandler = LocalUriHandler.current
 
