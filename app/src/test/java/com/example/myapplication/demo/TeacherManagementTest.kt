@@ -49,4 +49,19 @@ class TeacherManagementTest {
         store.assignDeckToClasses(general.id, listOf(second.id))
         assertEquals(listOf(second.id), store.decks.single().assignedClassIds)
     }
+
+    @Test fun demoStudentAppearsAndCanBeRemoved() {
+        val store = LocalMyDeckStore()
+        val classroom = store.createClass("Turma")
+        assertTrue(store.joinByCode(classroom.joinCode) is JoinClassResult.Joined)
+        assertEquals(1, store.participants.size)
+        assertEquals("@aluno-demo", store.participants.single().username)
+        val fake = store.addDemoParticipant(classroom.id, "@maria")
+        assertEquals(2, store.participants.size)
+        store.removeDemoParticipant(fake.id)
+        assertEquals(1, store.participants.size)
+        store.removeDemoParticipant(store.participants.single().id)
+        assertTrue(store.enrolledClassIds.isEmpty())
+        assertTrue(store.participants.isEmpty())
+    }
 }

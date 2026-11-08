@@ -13,6 +13,7 @@ class LocalMyDeckStore(context: Context? = null) {
     val cards = mutableStateListOf<DemoCard>()
     val enrolledClassIds = mutableStateListOf<String>()
     val availableTags = mutableStateListOf<String>()
+    val participants = mutableStateListOf<DemoParticipant>()
 
     init {
         persistence?.restore(this)
@@ -64,6 +65,7 @@ class LocalMyDeckStore(context: Context? = null) {
             }
         }
         enrolledClassIds.remove(classId)
+        participants.removeAll { it.classId == classId }
         classes.removeAll { it.id == classId }
         persist()
     }
@@ -201,11 +203,38 @@ class LocalMyDeckStore(context: Context? = null) {
         persist()
     }
 
+    fun addDemoParticipant(classId: String, rawUsername: String): DemoParticipant {
+        require(classes.any { it.id == classId })
+        val username = "@" + rawUsername.trim().removePrefix("@").lowercase(Locale.ROOT)
+        require(Regex("^@[a-z0-9_-]{3,24}$").matches(username))
+        require(participants.none { it.classId == classId && it.username == username })
+        val created = DemoParticipant(UUID.randomUUID().toString(), classId, username)
+        participants.add(created)
+        persist()
+        return created
+    }
+
+    fun removeDemoParticipant(participantId: String) {
+        val target = participants.firstOrNull { it.id == participantId }
+            ?: throw IllegalArgumentException("Participante não encontrado.")
+        participants.removeAll { it.id == participantId }
+        if (target.isCurrentDemoStudent) enrolledClassIds.remove(target.classId)
+        persist()
+    }
+
     fun joinByCode(rawCode: String): JoinClassResult {
         val code = rawCode.trim().uppercase(Locale.ROOT)
         val classroom = classes.firstOrNull { it.joinCode == code } ?: return JoinClassResult.NotFound
         if (classroom.id in enrolledClassIds) return JoinClassResult.AlreadyJoined
         enrolledClassIds.add(classroom.id)
+        if (participants.none { it.classId == classroom.id && it.isCurrentDemoStudent }) {
+            participants.add(DemoParticipant(
+                id = UUID.randomUUID().toString(),
+                classId = classroom.id,
+                username = "@aluno-demo",
+                isCurrentDemoStudent = true
+            ))
+        }
         persist()
         return JoinClassResult.Joined(classroom)
     }

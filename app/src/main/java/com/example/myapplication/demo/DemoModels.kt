@@ -50,6 +50,13 @@ data class DemoCard(
     val mediaLink: DemoMediaLink? = null
 )
 
+data class DemoParticipant(
+    val id: String,
+    val classId: String,
+    val username: String,
+    val isCurrentDemoStudent: Boolean = false
+)
+
 sealed interface JoinClassResult {
     data class Joined(val classroom: DemoClass) : JoinClassResult
     data object AlreadyJoined : JoinClassResult

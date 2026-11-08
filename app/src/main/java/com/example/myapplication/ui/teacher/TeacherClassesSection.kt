@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.demo.DemoClass
+import com.example.myapplication.demo.DemoParticipant
 import com.example.myapplication.ui.design.MyDeckButton
 import com.example.myapplication.ui.design.MyDeckButtonVariant
 import com.example.myapplication.ui.design.MyDeckDesign
@@ -27,6 +28,9 @@ import com.example.myapplication.ui.design.MyDeckDesign
 @Composable
 internal fun TeacherClassesSection(
     classes: List<DemoClass>,
+    participants: List<DemoParticipant>,
+    onAddParticipant: (String, String) -> Unit,
+    onRemoveParticipant: (String) -> Unit,
     onCreateClass: (String) -> Unit,
     onOpenClass: (String) -> Unit,
     onRenameClass: (String, String) -> Unit,
@@ -37,6 +41,9 @@ internal fun TeacherClassesSection(
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
     var deletingId by rememberSaveable { mutableStateOf<String?>(null) }
     var editedName by rememberSaveable { mutableStateOf("") }
+    var expandedParticipantsId by rememberSaveable { mutableStateOf<String?>(null) }
+    var participantName by rememberSaveable { mutableStateOf("") }
+    var deletingParticipantId by rememberSaveable { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
     Column {
@@ -82,6 +89,10 @@ internal fun TeacherClassesSection(
                     deletingId = classroom.id
                     editingId = null
                 }
+                TeacherAction("Alunos") {
+                    expandedParticipantsId = if (expandedParticipantsId == classroom.id) null else classroom.id
+                    deletingParticipantId = null
+                }
             }
             if (editingId == classroom.id) {
                 TeacherInput("Novo nome", "Nome da turma", editedName) { editedName = it }
@@ -98,9 +109,57 @@ internal fun TeacherClassesSection(
             if (deletingId == classroom.id) {
                 TeacherConfirmDelete(
                     "Excluir a turma também excluirá os seus decks e cartões locais.",
-                    onConfirm = { onDeleteClass(classroom.id); deletingId = null },
+                    onConfirm = {
+                        onDeleteClass(classroom.id)
+                        deletingId = null
+                        expandedParticipantsId = null
+                    },
                     onCancel = { deletingId = null }
                 )
+            }
+            if (expandedParticipantsId == classroom.id) {
+                val members = participants.filter { it.classId == classroom.id }
+                Spacer(Modifier.height(16.dp))
+                TeacherDivider()
+                Spacer(Modifier.height(17.dp))
+                TeacherLabel("PARTICIPANTES  ·  " + members.size)
+                Spacer(Modifier.height(9.dp))
+                TeacherBody("Participantes demonstrativos, sem contas ou matrículas reais no Firebase.")
+                Spacer(Modifier.height(16.dp))
+                TeacherInput("Adicionar @ de teste", "Ex.: @maria", participantName) {
+                    participantName = it
+                }
+                Spacer(Modifier.height(12.dp))
+                val clean = participantName.trim().removePrefix("@").lowercase()
+                val valid = Regex("^[a-z0-9_-]{3,24}$").matches(clean)
+                val alreadyExists = members.any { it.username == "@"+clean }
+                MyDeckButton("Adicionar participante", MyDeckButtonVariant.DARK,
+                    onClick = if (valid && !alreadyExists) ({
+                        onAddParticipant(classroom.id, participantName)
+                        participantName = ""
+                    }) else null
+                )
+                Spacer(Modifier.height(16.dp))
+                if (members.isEmpty()) {
+                    TeacherEmpty("Nenhum participante de demonstração.")
+                }
+                members.forEach { participant ->
+                    TeacherItemRow(
+                        participant.username,
+                        if (participant.isCurrentDemoStudent) "Perfil atual da prévia do aluno" else "Participante fictício"
+                    )
+                    TeacherAction("Remover") { deletingParticipantId = participant.id }
+                    if (deletingParticipantId == participant.id) {
+                        TeacherConfirmDelete(
+                            "Remover este participante desta turma? Se for o aluno da prévia, sua matrícula local será removida.",
+                            onConfirm = {
+                                onRemoveParticipant(participant.id)
+                                deletingParticipantId = null
+                            },
+                            onCancel = { deletingParticipantId = null }
+                        )
+                    }
+                }
             }
             Spacer(Modifier.height(17.dp))
         }

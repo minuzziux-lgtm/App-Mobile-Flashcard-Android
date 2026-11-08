@@ -80,6 +80,9 @@ fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
                     TeacherTab.CLASSES -> {
                         TeacherClassesSection(
                             classes = classes,
+                            participants = store.participants,
+                            onAddParticipant = store::addDemoParticipant,
+                            onRemoveParticipant = store::removeDemoParticipant,
                             onCreateClass = { name ->
                                 val created = store.createClass(name)
                                 selectedClassId = created.id

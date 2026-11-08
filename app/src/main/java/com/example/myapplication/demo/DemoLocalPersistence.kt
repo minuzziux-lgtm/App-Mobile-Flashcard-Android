@@ -54,12 +54,32 @@ internal class DemoLocalPersistence(context: Context) {
                     store.cards.flatMap { it.tags }.distinct()
                 }
             )
+            if (root.has("participants")) {
+                root.optJSONArray("participants").items().forEach { participant ->
+                    store.participants.add(DemoParticipant(
+                        id = participant.getString("id"),
+                        classId = participant.getString("classId"),
+                        username = participant.getString("username"),
+                        isCurrentDemoStudent = participant.optBoolean("isCurrentDemoStudent", false)
+                    ))
+                }
+            } else {
+                store.enrolledClassIds.forEach { id ->
+                    store.participants.add(DemoParticipant(
+                        id = java.util.UUID.randomUUID().toString(),
+                        classId = id,
+                        username = "@aluno-demo",
+                        isCurrentDemoStudent = true
+                    ))
+                }
+            }
         } catch (_: Exception) {
             store.classes.clear()
             store.decks.clear()
             store.cards.clear()
             store.enrolledClassIds.clear()
             store.availableTags.clear()
+            store.participants.clear()
         }
     }
 
@@ -92,6 +112,13 @@ internal class DemoLocalPersistence(context: Context) {
         })
         snapshot.put("enrolledClassIds", JSONArray(store.enrolledClassIds))
         snapshot.put("availableTags", JSONArray(store.availableTags))
+        snapshot.put("participants", JSONArray().apply {
+            store.participants.forEach { value ->
+                put(JSONObject().put("id", value.id).put("classId", value.classId)
+                    .put("username", value.username)
+                    .put("isCurrentDemoStudent", value.isCurrentDemoStudent))
+            }
+        })
         preferences.edit().putString("snapshot", snapshot.toString()).apply()
     }
 
