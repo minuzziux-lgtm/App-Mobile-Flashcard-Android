@@ -4,6 +4,28 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
     function isAdmin() { return signedIn() && request.auth.token.get('admin', false) == true; }
+    function hasRole(role) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+    function isStudent() { return hasRole('student'); }
+    function isTeacher() { return hasRole('teacher'); }
+    function isClassOwner(classId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/classes/$(classId))
+        && get(/databases/$(database)/documents/classes/$(classId)).data.ownerUid == request.auth.uid;
+    }
+    function isEnrolled(classId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/enrollments/$(classId + '_' + request.auth.uid));
+    }
+    function canReadClass(classId) { return isClassOwner(classId) || isEnrolled(classId); }
+    function canReadDeck(deckId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/decks/$(deckId))
+        && canReadClass(get(/databases/$(database)/documents/decks/$(deckId)).data.classId);
+    }
 
     match /users/{uid} {
       allow get: if isOwner(uid) || isAdmin();
@@ -15,7 +37,6 @@ service cloud.firestore {
         && request.resource.data.role in ['student', 'pending_teacher']
         && request.resource.data.name is string
         && request.resource.data.username is string;
-      // Only trusted admins may grant the 'teacher' role.
       allow update, delete: if isAdmin();
     }
 
@@ -28,6 +49,91 @@ service cloud.firestore {
         && request.resource.data.uid is string
         && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == username;
       allow update, delete: if isAdmin();
+    }
+
+    match /classes/{classId} {
+      // Teachers query by ownerUid. Students fetch known class IDs after joining.
+      allow get, list: if signedIn()
+        && (resource.data.ownerUid == request.auth.uid || isEnrolled(classId));
+      allow create: if isTeacher()
+        && request.resource.data.keys().hasOnly(['name', 'ownerUid', 'joinCode', 'createdAt'])
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.joinCode is string
+        && request.resource.data.joinCode.matches('^[A-Z2-9]{8}$')
+        && getAfter(/databases/$(database)/documents/classCodes/$(request.resource.data.joinCode)).data.classId == classId;
+      allow update, delete: if false;
+    }
+
+    match /classCodes/{code} {
+      // A student may look up a code, never enumerate all codes.
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if isTeacher()
+        && request.resource.data.keys().hasOnly(['classId', 'ownerUid', 'createdAt'])
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.classId is string
+        && code.matches('^[A-Z2-9]{8}$')
+        && getAfter(/databases/$(database)/documents/classes/$(request.resource.data.classId)).data.ownerUid == request.auth.uid
+        && getAfter(/databases/$(database)/documents/classes/$(request.resource.data.classId)).data.joinCode == code;
+      allow update, delete: if false;
+    }
+
+    match /enrollments/{enrollmentId} {
+      // Document ID is classId_studentUid; prevents duplicate enrollment.
+      allow get, list: if signedIn()
+        && (resource.data.studentId == request.auth.uid || isClassOwner(resource.data.classId));
+      allow create: if isStudent()
+        && request.resource.data.keys().hasOnly(['classId', 'studentId', 'joinCode', 'joinedAt'])
+        && request.resource.data.studentId == request.auth.uid
+        && request.resource.data.classId is string
+        && request.resource.data.joinCode is string
+        && enrollmentId == request.resource.data.classId + '_' + request.auth.uid
+        && get(/databases/$(database)/documents/classCodes/$(request.resource.data.joinCode)).data.classId == request.resource.data.classId;
+      allow update, delete: if false;
+    }
+
+    match /decks/{deckId} {
+      allow get, list: if signedIn() && canReadClass(resource.data.classId);
+      allow create: if isTeacher()
+        && request.resource.data.keys().hasOnly(['title', 'ownerUid', 'classId', 'createdAt'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.classId is string
+        && isClassOwner(request.resource.data.classId);
+      allow update, delete: if false;
+
+      match /cards/{cardId} {
+        allow get, list: if canReadDeck(deckId);
+        allow create: if isTeacher()
+          && get(/databases/$(database)/documents/decks/$(deckId)).data.ownerUid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['question', 'answer', 'tags', 'createdAt'])
+          && request.resource.data.question is string
+          && request.resource.data.question.size() > 0
+          && request.resource.data.answer is string
+          && request.resource.data.answer.size() > 0
+          && request.resource.data.tags is list;
+        allow update, delete: if false;
+      }
+    }
+
+    match /reviews/{reviewId} {
+      allow get, list: if signedIn()
+        && (resource.data.studentId == request.auth.uid || (
+          exists(/databases/$(database)/documents/decks/$(resource.data.deckId))
+          && get(/databases/$(database)/documents/decks/$(resource.data.deckId)).data.ownerUid == request.auth.uid
+        ));
+      allow create: if isStudent()
+        && request.resource.data.keys().hasOnly(['studentId', 'deckId', 'cardId', 'correct', 'reviewedAt'])
+        && request.resource.data.studentId == request.auth.uid
+        && request.resource.data.deckId is string
+        && request.resource.data.cardId is string
+        && request.resource.data.correct is bool
+        && canReadDeck(request.resource.data.deckId)
+        && exists(/databases/$(database)/documents/decks/$(request.resource.data.deckId)/cards/$(request.resource.data.cardId));
+      allow update, delete: if false;
     }
   }
 }
