@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -43,18 +42,18 @@ import com.example.myapplication.ui.navigation.BottomFrostedBackdrop
 import com.example.myapplication.ui.navigation.SmokedGlassSurface
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import java.util.UUID
+import com.example.myapplication.demo.LocalMyDeckStore
 
 private enum class TeacherTab(val label: String) {
     HOME("Início"), CLASSES("Turmas"), DECKS("Decks"), PERFORMANCE("Dados")
 }
 
 @Composable
-fun TeacherHomeShell(onLogout: () -> Unit = {}) {
-    val classes = remember { mutableStateListOf<TeacherClass>() }
+fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
+    val classes = store.classes
     var selectedClassId by rememberSaveable { mutableStateOf<String?>(null) }
-    val decks = remember { mutableStateListOf<TeacherDeck>() }
-    val cards = remember { mutableStateListOf<TeacherCard>() }
+    val decks = store.decks
+    val cards = store.cards
     var selectedDeckId by rememberSaveable { mutableStateOf<String?>(null) }
     var tab by rememberSaveable { mutableStateOf(TeacherTab.HOME.name) }
     val activeTab = TeacherTab.entries.firstOrNull { it.name == tab } ?: TeacherTab.HOME
@@ -94,8 +93,7 @@ fun TeacherHomeShell(onLogout: () -> Unit = {}) {
                         TeacherClassesSection(
                             classes = classes,
                             onCreateClass = { name ->
-                                val created = TeacherClass(UUID.randomUUID().toString(), name)
-                                classes.add(created)
+                                val created = store.createClass(name)
                                 selectedClassId = created.id
                                 selectedDeckId = null
                             },
@@ -115,13 +113,12 @@ fun TeacherHomeShell(onLogout: () -> Unit = {}) {
                             selectedDeckId = selectedDeckId,
                             onSelectClass = { selectedClassId = it; selectedDeckId = null },
                             onCreateDeck = { classId, title ->
-                                val created = TeacherDeck(UUID.randomUUID().toString(), classId, title)
-                                decks.add(created)
+                                val created = store.createDeck(classId, title)
                                 selectedDeckId = created.id
                             },
                             onSelectDeck = { selectedDeckId = it },
                             onAddCard = { deckId, question, answer, tags ->
-                                cards.add(TeacherCard(UUID.randomUUID().toString(), deckId, question, answer, tags))
+                                store.addCard(deckId, question, answer, tags)
                             },
                             onOpenClasses = { tab = TeacherTab.CLASSES.name }
                         )
@@ -229,5 +226,5 @@ private fun TeacherPlaceholder(title: String, text: String) {
 @Preview(showBackground = true, widthDp = 393, heightDp = 852)
 @Composable
 private fun TeacherHomePreview() {
-    TeacherHomeShell()
+    TeacherHomeShell(store = remember { LocalMyDeckStore() })
 }

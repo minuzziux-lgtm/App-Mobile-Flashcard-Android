@@ -10,20 +10,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.demo.DemoClass
+import com.example.myapplication.demo.DemoDeck
+import com.example.myapplication.demo.DemoCard
 import com.example.myapplication.ui.design.MyDeckButton
 import com.example.myapplication.ui.design.MyDeckButtonVariant
 
-internal data class TeacherDeck(val id: String, val classId: String, val title: String)
-internal data class TeacherCard(
-    val id: String, val deckId: String,
-    val question: String, val answer: String, val tags: List<String>
-)
-
 @Composable
 internal fun TeacherDecksSection(
-    classes: List<TeacherClass>,
-    decks: List<TeacherDeck>,
-    cards: List<TeacherCard>,
+    classes: List<DemoClass>,
+    decks: List<DemoDeck>,
+    cards: List<DemoCard>,
     selectedClassId: String?,
     selectedDeckId: String?,
     onSelectClass: (String) -> Unit,

@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.myapplication.auth.AccountKind
 import com.example.myapplication.auth.FirebaseAuthRepository
+import com.example.myapplication.demo.LocalMyDeckStore
 import com.example.myapplication.ui.screens.auth.TelaLogin
 import com.example.myapplication.ui.screens.auth.TelaRecuperarSenha
 import com.example.myapplication.ui.teacher.TeacherHomeShell
@@ -24,6 +25,7 @@ fun MyDeckNavigation() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val repository = remember(context) { FirebaseAuthRepository.create(context) }
+    val localStore = remember { LocalMyDeckStore() }
 
     fun exitToEntry() {
         repository?.signOut()
@@ -91,7 +93,7 @@ fun MyDeckNavigation() {
             StudentHomeShell(onLogout = ::exitToEntry)
         }
         composable("area-professor") {
-            TeacherHomeShell(onLogout = ::exitToEntry)
+            TeacherHomeShell(store = localStore, onLogout = ::exitToEntry)
         }
     }
 }

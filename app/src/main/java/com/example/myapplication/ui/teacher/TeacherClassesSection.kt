@@ -10,14 +10,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.demo.DemoClass
 import com.example.myapplication.ui.design.MyDeckButton
 import com.example.myapplication.ui.design.MyDeckButtonVariant
 
-internal data class TeacherClass(val id: String, val name: String)
-
 @Composable
 internal fun TeacherClassesSection(
-    classes: List<TeacherClass>,
+    classes: List<DemoClass>,
     onCreateClass: (String) -> Unit,
     onOpenClass: (String) -> Unit
 ) {
@@ -25,7 +24,7 @@ internal fun TeacherClassesSection(
     Column {
         TeacherTitle("Turmas.")
         Spacer(androidx.compose.ui.Modifier.height(14.dp))
-        TeacherBody("Crie e organize suas turmas. Os códigos de entrada serão gerados ao integrar com Firebase.")
+        TeacherBody("Crie turmas e compartilhe o código com o aluno nesta prévia local.")
         Spacer(androidx.compose.ui.Modifier.height(38.dp))
         TeacherLabel("01  /  NOVA TURMA")
         Spacer(androidx.compose.ui.Modifier.height(18.dp))
@@ -48,7 +47,7 @@ internal fun TeacherClassesSection(
             TeacherEmpty("Nenhuma turma criada ainda.")
         } else {
             classes.forEach { classroom ->
-                TeacherItemRow(classroom.name, "Abrir decks desta turma") {
+                TeacherItemRow(classroom.name, "Código: " + classroom.joinCode + "  ·  Abrir decks") {
                     onOpenClass(classroom.id)
                 }
             }
