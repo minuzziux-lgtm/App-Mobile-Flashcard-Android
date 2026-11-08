@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.demo.DemoCard
 import com.example.myapplication.demo.DemoCardDraft
 import com.example.myapplication.demo.DemoCardType
 import com.example.myapplication.demo.DemoMediaLink
@@ -31,22 +32,26 @@ import com.example.myapplication.ui.design.MyDeckButtonVariant
 import com.example.myapplication.ui.design.MyDeckDesign
 
 @Composable
-internal fun TeacherCardEditor(onSave: (DemoCardDraft) -> Unit) {
-    var typeName by rememberSaveable { mutableStateOf(DemoCardType.BASIC.name) }
+internal fun TeacherCardEditor(
+    initialCard: DemoCard? = null,
+    availableTags: List<String> = emptyList(),
+    onSave: (DemoCardDraft) -> Unit
+) {
+    var typeName by rememberSaveable { mutableStateOf(initialCard?.type?.name ?: DemoCardType.BASIC.name) }
     val type = DemoCardType.valueOf(typeName)
-    var question by rememberSaveable { mutableStateOf("") }
-    var answer by rememberSaveable { mutableStateOf("") }
-    var description by rememberSaveable { mutableStateOf("") }
-    var tags by rememberSaveable { mutableStateOf("") }
-    var option1 by rememberSaveable { mutableStateOf("") }
-    var option2 by rememberSaveable { mutableStateOf("") }
-    var option3 by rememberSaveable { mutableStateOf("") }
-    var option4 by rememberSaveable { mutableStateOf("") }
-    var correctOption by rememberSaveable { mutableStateOf(0) }
-    var frontLanguage by rememberSaveable { mutableStateOf("") }
-    var backLanguage by rememberSaveable { mutableStateOf("") }
-    var mediaTypeName by rememberSaveable { mutableStateOf("") }
-    var mediaUrl by rememberSaveable { mutableStateOf("") }
+    var question by rememberSaveable { mutableStateOf(initialCard?.question.orEmpty()) }
+    var answer by rememberSaveable { mutableStateOf(initialCard?.answer.orEmpty()) }
+    var description by rememberSaveable { mutableStateOf(initialCard?.description.orEmpty()) }
+    var tags by rememberSaveable { mutableStateOf(initialCard?.tags?.joinToString(", ").orEmpty()) }
+    var option1 by rememberSaveable { mutableStateOf(initialCard?.options?.getOrNull(0).orEmpty()) }
+    var option2 by rememberSaveable { mutableStateOf(initialCard?.options?.getOrNull(1).orEmpty()) }
+    var option3 by rememberSaveable { mutableStateOf(initialCard?.options?.getOrNull(2).orEmpty()) }
+    var option4 by rememberSaveable { mutableStateOf(initialCard?.options?.getOrNull(3).orEmpty()) }
+    var correctOption by rememberSaveable { mutableStateOf(initialCard?.correctOptionIndex ?: 0) }
+    var frontLanguage by rememberSaveable { mutableStateOf(initialCard?.frontLanguage.orEmpty()) }
+    var backLanguage by rememberSaveable { mutableStateOf(initialCard?.backLanguage.orEmpty()) }
+    var mediaTypeName by rememberSaveable { mutableStateOf(initialCard?.mediaLink?.type?.name.orEmpty()) }
+    var mediaUrl by rememberSaveable { mutableStateOf(initialCard?.mediaLink?.url.orEmpty()) }
     var feedback by rememberSaveable { mutableStateOf<String?>(null) }
     val options = listOf(option1, option2, option3, option4).map(String::trim)
     val selectedMediaType = DemoMediaType.entries.firstOrNull { it.name == mediaTypeName }
@@ -141,7 +146,7 @@ internal fun TeacherCardEditor(onSave: (DemoCardDraft) -> Unit) {
     }
     Spacer(Modifier.height(22.dp))
     MyDeckButton(
-        "Adicionar cartão", MyDeckButtonVariant.DARK,
+        if (initialCard == null) "Adicionar cartão" else "Salvar cartão", MyDeckButtonVariant.DARK,
         onClick = {
             val filled = options.filter(String::isNotEmpty)
             val invalidMedia = selectedMediaType != null && !isValidExternalLink(mediaUrl)
@@ -180,7 +185,7 @@ internal fun TeacherCardEditor(onSave: (DemoCardDraft) -> Unit) {
                 option1 = ""; option2 = ""; option3 = ""; option4 = ""
                 correctOption = 0; frontLanguage = ""; backLanguage = ""
                 mediaTypeName = ""; mediaUrl = ""
-                    feedback = "Cartão adicionado."
+                    feedback = if (initialCard == null) "Cartão adicionado." else "Cartão atualizado."
                 }
             }
         }

@@ -105,6 +105,40 @@ class LocalMyDeckStore(context: Context? = null) {
         return card
     }
 
+    fun updateCard(cardId: String, draft: DemoCardDraft) {
+        val index = cards.indexOfFirst { it.id == cardId }
+        require(index >= 0)
+        val error = validateCardDraft(draft)
+        require(error == null) { error ?: "Cartão inválido." }
+        cards[index] = cards[index].copy(
+            question = draft.question.trim(),
+            answer = draft.answer.trim(),
+            tags = draft.tags.map(String::trim).filter(String::isNotBlank).distinct(),
+            type = draft.type,
+            description = draft.description.trim(),
+            options = draft.options.map(String::trim),
+            correctOptionIndex = draft.correctOptionIndex,
+            frontLanguage = draft.frontLanguage.trim(),
+            backLanguage = draft.backLanguage.trim(),
+            mediaLink = draft.mediaLink?.copy(url = draft.mediaLink.url.trim())
+        )
+        persist()
+    }
+
+    fun duplicateCard(cardId: String): DemoCard {
+        val original = cards.first { it.id == cardId }
+        val copy = original.copy(id = UUID.randomUUID().toString())
+        cards.add(copy)
+        persist()
+        return copy
+    }
+
+    fun deleteCard(cardId: String) {
+        require(cards.any { it.id == cardId })
+        cards.removeAll { it.id == cardId }
+        persist()
+    }
+
     fun joinByCode(rawCode: String): JoinClassResult {
         val code = rawCode.trim().uppercase(Locale.ROOT)
         val classroom = classes.firstOrNull { it.joinCode == code } ?: return JoinClassResult.NotFound

@@ -17,4 +17,22 @@ class TeacherManagementTest {
         assertTrue(store.decks.isEmpty())
         assertTrue(store.cards.isEmpty())
     }
+
+    @Test fun editDuplicateAndDeleteDeckCards() {
+        val store = LocalMyDeckStore()
+        val classroom = store.createClass("Turma")
+        val deck = store.createDeck(classroom.id, "Original")
+        store.renameDeck(deck.id, "Novo")
+        assertEquals("Novo", store.decks.single().title)
+        val card = store.addCard(deck.id, "Pergunta", "Resposta", emptyList())
+        store.updateCard(card.id, DemoCardDraft(DemoCardType.BASIC, "Atualizada", "Sim"))
+        assertEquals("Atualizada", store.cards.single().question)
+        val duplicated = store.duplicateCard(card.id)
+        assertEquals(2, store.cards.size)
+        store.deleteCard(duplicated.id)
+        assertEquals(1, store.cards.size)
+        store.deleteDeck(deck.id)
+        assertTrue(store.decks.isEmpty())
+        assertTrue(store.cards.isEmpty())
+    }
 }

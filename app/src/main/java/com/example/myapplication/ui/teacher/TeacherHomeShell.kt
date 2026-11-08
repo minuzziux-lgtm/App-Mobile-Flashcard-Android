@@ -121,6 +121,9 @@ fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
                             onAddCard = { deckId, draft ->
                                 store.addCard(deckId, draft)
                             },
+                            onUpdateCard = store::updateCard,
+                            onDuplicateCard = { store.duplicateCard(it) },
+                            onDeleteCard = store::deleteCard,
                             onOpenClasses = { tab = TeacherTab.CLASSES.name }
                         )
                     }

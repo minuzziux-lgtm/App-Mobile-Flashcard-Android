@@ -50,3 +50,16 @@ sealed interface JoinClassResult {
     data object AlreadyJoined : JoinClassResult
     data object NotFound : JoinClassResult
 }
+
+fun DemoCard.toDraft(): DemoCardDraft = DemoCardDraft(
+    type = type,
+    question = question,
+    answer = answer,
+    description = description,
+    tags = tags,
+    options = options,
+    correctOptionIndex = correctOptionIndex,
+    frontLanguage = frontLanguage,
+    backLanguage = backLanguage,
+    mediaLink = mediaLink
+)
