@@ -2,7 +2,6 @@ package com.example.myapplication.demo
 
 import androidx.compose.runtime.mutableStateListOf
 import java.security.SecureRandom
-import java.net.URI
 import java.util.Locale
 import java.util.UUID
 
@@ -93,22 +92,8 @@ class LocalMyDeckStore {
 
     fun addCard(deckId: String, draft: DemoCardDraft): DemoCard {
         require(decks.any { it.id == deckId })
-        require(draft.question.isNotBlank())
-        if (draft.type != DemoCardType.OPEN_ENDED && draft.type != DemoCardType.MULTIPLE_CHOICE) {
-            require(draft.answer.isNotBlank())
-        }
-        if (draft.type == DemoCardType.CLOZE) {
-            require("___" in draft.question) { "Use ___ para marcar a lacuna." }
-        }
-        if (draft.type == DemoCardType.MULTIPLE_CHOICE) {
-            require(draft.options.size in 2..4)
-            require(draft.options.all(String::isNotBlank))
-            require(draft.correctOptionIndex != null && draft.correctOptionIndex in draft.options.indices)
-            require(draft.options[draft.correctOptionIndex].trim() == draft.answer.trim())
-        }
-        draft.mediaLink?.let { link ->
-            require(isValidExternalLink(link.url))
-        }
+        val validationError = validateCardDraft(draft)
+        require(validationError == null) { validationError ?: "Cartão inválido." }
         val card = DemoCard(
             id = UUID.randomUUID().toString(),
             deckId = deckId,
@@ -133,18 +118,5 @@ class LocalMyDeckStore {
         if (classroom.id in enrolledClassIds) return JoinClassResult.AlreadyJoined
         enrolledClassIds.add(classroom.id)
         return JoinClassResult.Joined(classroom)
-    }
-}
-
-fun isValidExternalLink(url: String): Boolean {
-    val cleaned = url.trim()
-    if (cleaned.length > 2000) return false
-    return try {
-        val parsed = URI(cleaned)
-        parsed.scheme.equals("https", ignoreCase = true) &&
-            !parsed.host.isNullOrBlank() &&
-            parsed.userInfo == null
-    } catch (_: IllegalArgumentException) {
-        false
     }
 }

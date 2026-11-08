@@ -25,6 +25,7 @@ import com.example.myapplication.demo.DemoCardType
 import com.example.myapplication.demo.DemoMediaLink
 import com.example.myapplication.demo.DemoMediaType
 import com.example.myapplication.demo.isValidExternalLink
+import com.example.myapplication.demo.validateCardDraft
 import com.example.myapplication.ui.design.MyDeckButton
 import com.example.myapplication.ui.design.MyDeckButtonVariant
 import com.example.myapplication.ui.design.MyDeckDesign
@@ -172,12 +173,15 @@ internal fun TeacherCardEditor(onSave: (DemoCardDraft) -> Unit) {
                     backLanguage = if (type == DemoCardType.REVERSIBLE) backLanguage.trim() else "",
                     mediaLink = selectedMediaType?.let { DemoMediaLink(it, mediaUrl.trim()) }
                 )
-                onSave(draft)
-                question = ""; answer = ""; description = ""; tags = ""
+                feedback = validateCardDraft(draft)
+                if (feedback == null) {
+                    onSave(draft)
+                    question = ""; answer = ""; description = ""; tags = ""
                 option1 = ""; option2 = ""; option3 = ""; option4 = ""
                 correctOption = 0; frontLanguage = ""; backLanguage = ""
                 mediaTypeName = ""; mediaUrl = ""
-                feedback = "Cartão adicionado."
+                    feedback = "Cartão adicionado."
+                }
             }
         }
     )
