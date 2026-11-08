@@ -2,17 +2,53 @@ package com.example.myapplication.demo
 
 import androidx.compose.runtime.mutableStateListOf
 import java.security.SecureRandom
+import java.net.URI
 import java.util.Locale
 import java.util.UUID
 
 data class DemoClass(val id: String, val name: String, val joinCode: String)
 data class DemoDeck(val id: String, val classId: String, val title: String)
+
+enum class DemoCardType(val label: String) {
+    BASIC("Pergunta e resposta"),
+    MULTIPLE_CHOICE("Múltipla escolha"),
+    CLOZE("Completar lacuna"),
+    REVERSIBLE("Idiomas / reversível"),
+    OPEN_ENDED("Resposta livre")
+}
+
+enum class DemoMediaType(val label: String) {
+    IMAGE("Imagem"), VIDEO("Vídeo"), DOCUMENT("Documento (PDF)")
+}
+
+data class DemoMediaLink(val type: DemoMediaType, val url: String)
+
+data class DemoCardDraft(
+    val type: DemoCardType,
+    val question: String,
+    val answer: String = "",
+    val description: String = "",
+    val tags: List<String> = emptyList(),
+    val options: List<String> = emptyList(),
+    val correctOptionIndex: Int? = null,
+    val frontLanguage: String = "",
+    val backLanguage: String = "",
+    val mediaLink: DemoMediaLink? = null
+)
+
 data class DemoCard(
     val id: String,
     val deckId: String,
     val question: String,
     val answer: String,
-    val tags: List<String>
+    val tags: List<String>,
+    val type: DemoCardType = DemoCardType.BASIC,
+    val description: String = "",
+    val options: List<String> = emptyList(),
+    val correctOptionIndex: Int? = null,
+    val frontLanguage: String = "",
+    val backLanguage: String = "",
+    val mediaLink: DemoMediaLink? = null
 )
 
 sealed interface JoinClassResult {
@@ -52,11 +88,40 @@ class LocalMyDeckStore {
         return deck
     }
 
-    fun addCard(deckId: String, question: String, answer: String, tags: List<String>): DemoCard {
-        require(question.isNotBlank() && answer.isNotBlank() && decks.any { it.id == deckId })
+    fun addCard(deckId: String, question: String, answer: String, tags: List<String>): DemoCard =
+        addCard(deckId, DemoCardDraft(DemoCardType.BASIC, question, answer, tags = tags))
+
+    fun addCard(deckId: String, draft: DemoCardDraft): DemoCard {
+        require(decks.any { it.id == deckId })
+        require(draft.question.isNotBlank())
+        if (draft.type != DemoCardType.OPEN_ENDED && draft.type != DemoCardType.MULTIPLE_CHOICE) {
+            require(draft.answer.isNotBlank())
+        }
+        if (draft.type == DemoCardType.CLOZE) {
+            require("___" in draft.question) { "Use ___ para marcar a lacuna." }
+        }
+        if (draft.type == DemoCardType.MULTIPLE_CHOICE) {
+            require(draft.options.size in 2..4)
+            require(draft.options.all(String::isNotBlank))
+            require(draft.correctOptionIndex != null && draft.correctOptionIndex in draft.options.indices)
+            require(draft.options[draft.correctOptionIndex].trim() == draft.answer.trim())
+        }
+        draft.mediaLink?.let { link ->
+            require(isValidExternalLink(link.url))
+        }
         val card = DemoCard(
-            UUID.randomUUID().toString(), deckId, question.trim(), answer.trim(),
-            tags.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+            id = UUID.randomUUID().toString(),
+            deckId = deckId,
+            question = draft.question.trim(),
+            answer = draft.answer.trim(),
+            tags = draft.tags.map(String::trim).filter(String::isNotEmpty).distinct(),
+            type = draft.type,
+            description = draft.description.trim(),
+            options = draft.options.map(String::trim),
+            correctOptionIndex = draft.correctOptionIndex,
+            frontLanguage = draft.frontLanguage.trim(),
+            backLanguage = draft.backLanguage.trim(),
+            mediaLink = draft.mediaLink?.copy(url = draft.mediaLink.url.trim())
         )
         cards.add(card)
         return card
@@ -68,5 +133,18 @@ class LocalMyDeckStore {
         if (classroom.id in enrolledClassIds) return JoinClassResult.AlreadyJoined
         enrolledClassIds.add(classroom.id)
         return JoinClassResult.Joined(classroom)
+    }
+}
+
+fun isValidExternalLink(url: String): Boolean {
+    val cleaned = url.trim()
+    if (cleaned.length > 2000) return false
+    return try {
+        val parsed = URI(cleaned)
+        parsed.scheme.equals("https", ignoreCase = true) &&
+            !parsed.host.isNullOrBlank() &&
+            parsed.userInfo == null
+    } catch (_: IllegalArgumentException) {
+        false
     }
 }
