@@ -90,7 +90,7 @@ fun MyDeckNavigation() {
             )
         }
         composable("home-aluno") {
-            StudentHomeShell(onLogout = ::exitToEntry)
+            StudentHomeShell(store = localStore, onLogout = ::exitToEntry)
         }
         composable("area-professor") {
             TeacherHomeShell(store = localStore, onLogout = ::exitToEntry)

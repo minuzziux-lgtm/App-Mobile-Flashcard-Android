@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -24,6 +26,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.screens.auth.TelaPerfilAluno
+import com.example.myapplication.demo.LocalMyDeckStore
 import com.example.myapplication.ui.navigation.BottomFrostedBackdrop
 import com.example.myapplication.ui.navigation.MyDeckBottomBar
 import com.example.myapplication.ui.navigation.StudentTab
@@ -31,11 +34,12 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 
 @Composable
-fun StudentHomeShell(onLogout: () -> Unit = {}) {
+fun StudentHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
     val nav = rememberNavController()
     val currentEntry by nav.currentBackStackEntryAsState()
     val hazeState = remember { HazeState() }
     var scrollToReviewsRequest by remember { mutableIntStateOf(0) }
+    var selectedClassId by rememberSaveable { mutableStateOf<String?>(null) }
     val currentRoute = currentEntry?.destination?.route ?: StudentTab.HOME.route
 
     fun navigateTo(tab: StudentTab) {
@@ -67,10 +71,24 @@ fun StudentHomeShell(onLogout: () -> Unit = {}) {
                     )
                 }
                 composable(StudentTab.CLASSES.route) {
-                    StudentSection("Turmas.", "Suas turmas aparecerão aqui quando estiverem disponíveis.")
+                    StudentClassesScreen(
+                        classes = store.classes.filter { it.id in store.enrolledClassIds },
+                        deckCounts = store.decks.groupingBy { it.classId }.eachCount(),
+                        onJoinClass = store::joinByCode,
+                        onOpenDecks = { classId ->
+                            selectedClassId = classId
+                            navigateTo(StudentTab.DECKS)
+                        }
+                    )
                 }
                 composable(StudentTab.DECKS.route) {
-                    StudentSection("Decks.", "Seus decks aparecerão aqui quando estiverem disponíveis.")
+                    StudentDecksScreen(
+                        classes = store.classes.filter { it.id in store.enrolledClassIds },
+                        decks = store.decks,
+                        cards = store.cards,
+                        selectedClassId = selectedClassId,
+                        onSelectClass = { selectedClassId = it }
+                    )
                 }
                 composable(StudentTab.PROFILE.route) {
                     TelaPerfilAluno(onSair = onLogout)
