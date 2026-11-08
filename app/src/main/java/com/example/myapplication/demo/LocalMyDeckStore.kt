@@ -12,6 +12,7 @@ class LocalMyDeckStore(context: Context? = null) {
     val decks = mutableStateListOf<DemoDeck>()
     val cards = mutableStateListOf<DemoCard>()
     val enrolledClassIds = mutableStateListOf<String>()
+    val availableTags = mutableStateListOf<String>()
 
     init {
         persistence?.restore(this)
@@ -101,6 +102,7 @@ class LocalMyDeckStore(context: Context? = null) {
             mediaLink = draft.mediaLink?.copy(url = draft.mediaLink.url.trim())
         )
         cards.add(card)
+        registerTags(card.tags)
         persist()
         return card
     }
@@ -122,6 +124,7 @@ class LocalMyDeckStore(context: Context? = null) {
             backLanguage = draft.backLanguage.trim(),
             mediaLink = draft.mediaLink?.copy(url = draft.mediaLink.url.trim())
         )
+        registerTags(draft.tags)
         persist()
     }
 
@@ -136,6 +139,45 @@ class LocalMyDeckStore(context: Context? = null) {
     fun deleteCard(cardId: String) {
         require(cards.any { it.id == cardId })
         cards.removeAll { it.id == cardId }
+        persist()
+    }
+
+    private fun registerTags(items: List<String>) {
+        items.map(String::trim).filter(String::isNotBlank).forEach { name ->
+            if (availableTags.none { it.equals(name, ignoreCase = true) }) availableTags.add(name)
+        }
+    }
+
+    fun addTag(name: String) {
+        val clean = name.trim()
+        require(clean.isNotEmpty() && clean.length <= 40)
+        registerTags(listOf(clean))
+        persist()
+    }
+
+    fun renameTag(old: String, replacement: String) {
+        val clean = replacement.trim()
+        require(clean.isNotEmpty() && clean.length <= 40)
+        val index = availableTags.indexOfFirst { it.equals(old, ignoreCase = true) }
+        require(index >= 0)
+        require(availableTags.none { it.equals(clean, ignoreCase = true) && !it.equals(old, ignoreCase = true) })
+        availableTags[index] = clean
+        for (i in cards.indices) {
+            val card = cards[i]
+            if (card.tags.any { it.equals(old, ignoreCase = true) }) {
+                cards[i] = card.copy(tags = card.tags.map { if (it.equals(old, ignoreCase = true)) clean else it })
+            }
+        }
+        persist()
+    }
+
+    fun deleteTag(name: String) {
+        require(availableTags.any { it.equals(name, ignoreCase = true) })
+        availableTags.removeAll { it.equals(name, ignoreCase = true) }
+        for (i in cards.indices) {
+            val card = cards[i]
+            cards[i] = card.copy(tags = card.tags.filterNot { it.equals(name, ignoreCase = true) })
+        }
         persist()
     }
 

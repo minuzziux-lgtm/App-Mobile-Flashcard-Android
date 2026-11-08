@@ -25,6 +25,10 @@ internal fun TeacherDecksSection(
     classes: List<DemoClass>,
     decks: List<DemoDeck>,
     cards: List<DemoCard>,
+    availableTags: List<String>,
+    onCreateTag: (String) -> Unit,
+    onRenameTag: (String, String) -> Unit,
+    onDeleteTag: (String) -> Unit,
     selectedClassId: String?,
     selectedDeckId: String?,
     onSelectClass: (String) -> Unit,
@@ -133,7 +137,7 @@ internal fun TeacherDecksSection(
                     }
                     val existing = selectedCards.firstOrNull { it.id == editingCardId }
                     androidx.compose.runtime.key(selectedDeck.id, existing?.id) {
-                        TeacherCardEditor(initialCard = existing) { draft ->
+                        TeacherCardEditor(initialCard = existing, availableTags = availableTags) { draft ->
                             if (existing == null) onAddCard(selectedDeck.id, draft)
                             else {
                                 onUpdateCard(existing.id, draft)
@@ -172,6 +176,12 @@ internal fun TeacherDecksSection(
                     }
                 }
             }
+            Spacer(Modifier.height(42.dp))
+            TeacherDivider()
+            Spacer(Modifier.height(24.dp))
+            TeacherTagsSection(
+                availableTags, onCreateTag, onRenameTag, onDeleteTag
+            )
         }
     }
 }

@@ -44,11 +44,17 @@ internal class DemoLocalPersistence(context: Context) {
                 ))
             }
             store.enrolledClassIds.addAll(root.optJSONArray("enrolledClassIds").texts())
+            store.availableTags.addAll(
+                root.optJSONArray("availableTags").texts().ifEmpty {
+                    store.cards.flatMap { it.tags }.distinct()
+                }
+            )
         } catch (_: Exception) {
             store.classes.clear()
             store.decks.clear()
             store.cards.clear()
             store.enrolledClassIds.clear()
+            store.availableTags.clear()
         }
     }
 
@@ -79,6 +85,7 @@ internal class DemoLocalPersistence(context: Context) {
             }
         })
         snapshot.put("enrolledClassIds", JSONArray(store.enrolledClassIds))
+        snapshot.put("availableTags", JSONArray(store.availableTags))
         preferences.edit().putString("snapshot", snapshot.toString()).apply()
     }
 

@@ -125,6 +125,19 @@ internal fun TeacherCardEditor(
     MultiLineInput("Descrição / instruções (opcional)", description) { description = it }
     Spacer(Modifier.height(20.dp))
     TeacherInput("Tags (opcional)", "Ex.: idioma, gramática", tags) { tags = it }
+    if (availableTags.isNotEmpty()) {
+        Spacer(Modifier.height(12.dp))
+        TeacherLabel("REUTILIZAR TAGS")
+        Spacer(Modifier.height(9.dp))
+        availableTags.forEach { available ->
+            val current = tags.split(',').map(String::trim).filter(String::isNotBlank)
+            TeacherSelectionRow(available, current.any { it.equals(available, ignoreCase = true) }) {
+                tags = if (current.any { it.equals(available, ignoreCase = true) }) {
+                    current.filterNot { it.equals(available, ignoreCase = true) }.joinToString(", ")
+                } else (current + available).joinToString(", ")
+            }
+        }
+    }
     Spacer(Modifier.height(26.dp))
     TeacherLabel("LINK DE MATERIAL (OPCIONAL)")
     Spacer(Modifier.height(10.dp))
