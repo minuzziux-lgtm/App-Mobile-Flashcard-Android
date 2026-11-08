@@ -53,6 +53,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
+import com.example.myapplication.auth.AccountKind
+import com.example.myapplication.auth.AuthResult
+import com.example.myapplication.auth.FirebaseAuthRepository
 import com.example.myapplication.ui.design.MyDeckButton
 import com.example.myapplication.ui.design.MyDeckButtonVariant
 import com.example.myapplication.ui.design.MyDeckDesign
@@ -61,7 +64,11 @@ private val usernamePattern = Regex("^[A-Za-z0-9._]{3,24}$")
 private val emailPattern = Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
 
 @Composable
-fun TelaCadastro(onVoltar: () -> Unit = {}) {
+fun TelaCadastro(
+    onVoltar: () -> Unit = {},
+    repository: FirebaseAuthRepository? = null,
+    onLogin: (AccountKind) -> Unit = {}
+) {
     var tipoConta by rememberSaveable { mutableStateOf("aluno") }
     var nome by rememberSaveable { mutableStateOf("") }
     var usuario by rememberSaveable { mutableStateOf("") }
@@ -75,7 +82,9 @@ fun TelaCadastro(onVoltar: () -> Unit = {}) {
     var validouEmail by rememberSaveable { mutableStateOf(false) }
     var validouConfirmacao by rememberSaveable { mutableStateOf(false) }
     var tentouEnviar by rememberSaveable { mutableStateOf(false) }
-    var dadosValidados by remember { mutableStateOf(false) }
+    var enviando by remember { mutableStateOf(false) }
+    var cadastroConcluido by remember { mutableStateOf(false) }
+    var feedback by remember { mutableStateOf<String?>(null) }
     val foco = LocalFocusManager.current
 
     val nomeInvalido = nome.trim().length < 2
@@ -167,12 +176,12 @@ fun TelaCadastro(onVoltar: () -> Unit = {}) {
             TipoConta(
                 label = stringResource(R.string.signup_student),
                 selecionado = tipoConta == "aluno",
-                onClick = { tipoConta = "aluno"; dadosValidados = false }
+                onClick = { tipoConta = "aluno"; feedback = null; cadastroConcluido = false }
             )
             TipoConta(
                 label = stringResource(R.string.signup_teacher),
                 selecionado = tipoConta == "professor",
-                onClick = { tipoConta = "professor"; dadosValidados = false }
+                onClick = { tipoConta = "professor"; feedback = null; cadastroConcluido = false }
             )
         }
 
@@ -182,7 +191,7 @@ fun TelaCadastro(onVoltar: () -> Unit = {}) {
             rotulo = stringResource(R.string.signup_name),
             dica = stringResource(R.string.signup_name_hint),
             valor = nome,
-            aoAlterar = { nome = it; validouNome = false; dadosValidados = false },
+            aoAlterar = { nome = it; validouNome = false; feedback = null; cadastroConcluido = false },
             aoConcluir = { validouNome = true },
             erro = if (validouNome && nomeInvalido)
                 stringResource(R.string.signup_name_error) else null,
@@ -195,7 +204,7 @@ fun TelaCadastro(onVoltar: () -> Unit = {}) {
             rotulo = stringResource(R.string.signup_username),
             dica = stringResource(R.string.signup_username_hint),
             valor = usuario,
-            aoAlterar = { usuario = it; validouUsuario = false; dadosValidados = false },
+            aoAlterar = { usuario = it; validouUsuario = false; feedback = null; cadastroConcluido = false },
             aoConcluir = { validouUsuario = true },
             erro = if (validouUsuario && usuarioInvalido)
                 stringResource(R.string.signup_username_error) else null,
@@ -208,7 +217,7 @@ fun TelaCadastro(onVoltar: () -> Unit = {}) {
             rotulo = stringResource(R.string.signup_email),
             dica = stringResource(R.string.signup_email_hint),
             valor = email,
-            aoAlterar = { email = it; validouEmail = false; dadosValidados = false },
+            aoAlterar = { email = it; validouEmail = false; feedback = null; cadastroConcluido = false },
             aoConcluir = { validouEmail = true },
             erro = if (validouEmail && emailInvalido)
                 stringResource(R.string.signup_email_error) else null,
@@ -225,7 +234,7 @@ fun TelaCadastro(onVoltar: () -> Unit = {}) {
             aoAlterar = {
                 senha = it
                 validouConfirmacao = false
-                dadosValidados = false
+                feedback = null; cadastroConcluido = false
             },
             aoConcluir = {},
             erro = if (senhaInvalida && mensagemSenha != null) mensagemSenha else null,
@@ -240,7 +249,7 @@ fun TelaCadastro(onVoltar: () -> Unit = {}) {
             rotulo = stringResource(R.string.signup_confirm),
             dica = stringResource(R.string.signup_confirm_hint),
             valor = confirmacao,
-            aoAlterar = { confirmacao = it; validouConfirmacao = false; dadosValidados = false },
+            aoAlterar = { confirmacao = it; validouConfirmacao = false; feedback = null; cadastroConcluido = false },
             aoConcluir = { validouConfirmacao = true },
             erro = if (validouConfirmacao && confirmacaoInvalida) stringResource(
                 if (confirmacao.isEmpty()) R.string.signup_confirm_required
@@ -254,19 +263,59 @@ fun TelaCadastro(onVoltar: () -> Unit = {}) {
         Spacer(Modifier.height(36.dp))
 
         MyDeckButton(
-            label = if (dadosValidados) stringResource(R.string.signup_validated)
-            else stringResource(R.string.signup_submit),
+            label = when {
+                cadastroConcluido -> "Ir para login"
+                enviando -> "Criando conta..."
+                else -> stringResource(R.string.signup_submit)
+            },
             variant = MyDeckButtonVariant.DARK,
-            onClick = {
-                validouNome = true
-                validouUsuario = true
-                validouEmail = true
-                validouConfirmacao = true
-                tentouEnviar = true
-                dadosValidados = formularioValido
-                foco.clearFocus()
+            onClick = if (enviando) null else {
+                {
+                    if (cadastroConcluido) {
+                        onLogin(if (tipoConta == "professor") AccountKind.TEACHER else AccountKind.STUDENT)
+                    } else {
+                        validouNome = true
+                        validouUsuario = true
+                        validouEmail = true
+                        validouConfirmacao = true
+                        tentouEnviar = true
+                        foco.clearFocus()
+                        if (formularioValido) {
+                            if (repository == null) {
+                                feedback = "Configure o Firebase para criar sua conta."
+                            } else {
+                                enviando = true
+                                val kind = if (tipoConta == "professor") AccountKind.TEACHER else AccountKind.STUDENT
+                                repository.register(nome, usuario, email, senha, kind) { result ->
+                                    enviando = false
+                                    feedback = when (result) {
+                                        is AuthResult.Success -> null
+                                        is AuthResult.Notice -> {
+                                            cadastroConcluido = true
+                                            result.message
+                                        }
+                                        is AuthResult.Failure -> result.message
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         )
+        if (feedback != null) {
+            Spacer(Modifier.height(14.dp))
+            BasicText(
+                text = feedback.orEmpty(),
+                style = TextStyle(
+                    fontFamily = MyDeckDesign.font,
+                    fontSize = 13.sp,
+                    lineHeight = 20.sp,
+                    color = MyDeckDesign.secondary
+                )
+            )
+        }
+
     }
 }
 
