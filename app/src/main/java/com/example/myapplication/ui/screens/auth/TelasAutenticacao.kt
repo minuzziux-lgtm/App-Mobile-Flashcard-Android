@@ -195,15 +195,6 @@ fun TelaPerfilAluno(onSair: () -> Unit) {
 }
 
 @Composable
-fun TelaProfessor(onSair: () -> Unit) {
-    AuthScreenFrame(onVoltar = onSair, title = "Área do\nprofessor.") {
-        StatusMessage("Sua conta está autenticada. O painel do professor será implementado na etapa correspondente do cronograma.")
-        Spacer(Modifier.height(32.dp))
-        MyDeckButton("Sair", MyDeckButtonVariant.DARK, onClick = onSair)
-    }
-}
-
-@Composable
 private fun AuthScreenFrame(
     onVoltar: () -> Unit,
     title: String,

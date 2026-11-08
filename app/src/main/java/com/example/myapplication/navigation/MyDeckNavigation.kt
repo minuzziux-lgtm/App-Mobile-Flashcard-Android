@@ -12,7 +12,7 @@ import com.example.myapplication.auth.AccountKind
 import com.example.myapplication.auth.FirebaseAuthRepository
 import com.example.myapplication.ui.screens.auth.TelaLogin
 import com.example.myapplication.ui.screens.auth.TelaRecuperarSenha
-import com.example.myapplication.ui.screens.auth.TelaProfessor
+import com.example.myapplication.ui.teacher.TeacherHomeShell
 import com.example.myapplication.ui.screens.auth.TelaPerfilAluno
 import com.example.myapplication.ui.screens.signup.TelaCadastro
 import com.example.myapplication.ui.screens.welcome.TelaEntrada
@@ -85,7 +85,7 @@ fun MyDeckNavigation() {
             StudentHomeShell(onLogout = ::exitToEntry)
         }
         composable("area-professor") {
-            TelaProfessor(onSair = ::exitToEntry)
+            TeacherHomeShell(onLogout = ::exitToEntry)
         }
     }
 }
