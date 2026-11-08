@@ -53,6 +53,9 @@ private enum class TeacherTab(val label: String) {
 fun TeacherHomeShell(onLogout: () -> Unit = {}) {
     val classes = remember { mutableStateListOf<TeacherClass>() }
     var selectedClassId by rememberSaveable { mutableStateOf<String?>(null) }
+    val decks = remember { mutableStateListOf<TeacherDeck>() }
+    val cards = remember { mutableStateListOf<TeacherCard>() }
+    var selectedDeckId by rememberSaveable { mutableStateOf<String?>(null) }
     var tab by rememberSaveable { mutableStateOf(TeacherTab.HOME.name) }
     val activeTab = TeacherTab.entries.firstOrNull { it.name == tab } ?: TeacherTab.HOME
     val hazeState = remember { HazeState() }
@@ -82,8 +85,8 @@ fun TeacherHomeShell(onLogout: () -> Unit = {}) {
                 when (activeTab) {
                     TeacherTab.HOME -> TeacherDashboard(
                         classes.size,
-                        0,
-                        0,
+                        decks.size,
+                        cards.size,
                         onClasses = { tab = TeacherTab.CLASSES.name },
                         onDecks = { tab = TeacherTab.DECKS.name }
                     )
@@ -94,17 +97,34 @@ fun TeacherHomeShell(onLogout: () -> Unit = {}) {
                                 val created = TeacherClass(UUID.randomUUID().toString(), name)
                                 classes.add(created)
                                 selectedClassId = created.id
-                                
+                                selectedDeckId = null
                             },
                             onOpenClass = { id ->
                                 selectedClassId = id
-                                
+                                selectedDeckId = null
                                 tab = TeacherTab.DECKS.name
                             }
                         )
                     }
                     TeacherTab.DECKS -> {
-                        TeacherPlaceholder("Decks.", "Os decks e cartões serão adicionados na próxima etapa.")
+                        TeacherDecksSection(
+                            classes = classes,
+                            decks = decks,
+                            cards = cards,
+                            selectedClassId = selectedClassId,
+                            selectedDeckId = selectedDeckId,
+                            onSelectClass = { selectedClassId = it; selectedDeckId = null },
+                            onCreateDeck = { classId, title ->
+                                val created = TeacherDeck(UUID.randomUUID().toString(), classId, title)
+                                decks.add(created)
+                                selectedDeckId = created.id
+                            },
+                            onSelectDeck = { selectedDeckId = it },
+                            onAddCard = { deckId, question, answer, tags ->
+                                cards.add(TeacherCard(UUID.randomUUID().toString(), deckId, question, answer, tags))
+                            },
+                            onOpenClasses = { tab = TeacherTab.CLASSES.name }
+                        )
                     }
                     TeacherTab.PERFORMANCE -> {
                         TeacherTitle("Desempenho.")
