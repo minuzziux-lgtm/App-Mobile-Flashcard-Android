@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/auth-firebase-07nov
+      - main
   workflow_dispatch:
 
 permissions:
