@@ -1,5 +1,6 @@
 package com.example.myapplication.navigation
 
+import android.content.pm.ApplicationInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -41,7 +42,12 @@ fun MyDeckNavigation() {
             TelaEntrada(
                 onCriarConta = { navController.navigate("cadastro") },
                 onAlunoClick = { goToLogin(AccountKind.STUDENT) },
-                onProfessorClick = { goToLogin(AccountKind.TEACHER) }
+                onProfessorClick = { goToLogin(AccountKind.TEACHER) },
+                onProfessorPreview = if (
+                    (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+                ) {
+                    { navController.navigate("area-professor") }
+                } else null
             )
         }
         composable("cadastro") {

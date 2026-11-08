@@ -57,7 +57,8 @@ private val corBotao = Color(0xFFF1F1F1)
 fun TelaEntrada(
     onCriarConta: () -> Unit = {},
     onAlunoClick: () -> Unit = {},
-    onProfessorClick: () -> Unit = {}
+    onProfessorClick: () -> Unit = {},
+    onProfessorPreview: (() -> Unit)? = null
 ) {
     val descricao = stringResource(R.string.welcome_description)
     val marca = stringResource(R.string.welcome_brand)
@@ -161,6 +162,22 @@ fun TelaEntrada(
                         lineHeight = 20.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = corPrincipal,
+                        textDecoration = TextDecoration.Underline
+                    )
+                )
+            }
+
+            if (onProfessorPreview != null) {
+                Spacer(Modifier.height(12.dp))
+                BasicText(
+                    "Prévia do professor · sem Firebase",
+                    modifier = Modifier.clickable(onClick = onProfessorPreview)
+                        .padding(vertical = 12.dp),
+                    style = TextStyle(
+                        fontFamily = fonteMyDeck,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = corSecundaria,
                         textDecoration = TextDecoration.Underline
                     )
                 )
