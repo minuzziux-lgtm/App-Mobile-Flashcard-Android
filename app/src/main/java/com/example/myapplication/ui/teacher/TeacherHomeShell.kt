@@ -39,7 +39,8 @@ import com.example.myapplication.ui.design.MyDeckButton
 import com.example.myapplication.ui.design.MyDeckButtonVariant
 import com.example.myapplication.ui.design.MyDeckDesign
 import com.example.myapplication.ui.navigation.BottomFrostedBackdrop
-import com.example.myapplication.ui.navigation.SmokedGlassSurface
+import com.example.myapplication.ui.navigation.MyDeckBottomBar
+import com.example.myapplication.ui.navigation.MyDeckNavItem
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import com.example.myapplication.demo.LocalMyDeckStore
@@ -139,43 +140,17 @@ fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
         }
 
         BottomFrostedBackdrop(hazeState, Modifier.align(Alignment.BottomCenter))
-        SmokedGlassSurface(
-            hazeState,
-            Modifier.align(Alignment.BottomCenter)
+        MyDeckBottomBar(
+            currentId = activeTab.name,
+            items = TeacherTab.entries.map { MyDeckNavItem(it.name, it.label) },
+            hazeState = hazeState,
+            onNavigate = { tab = it },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(start = 19.dp, end = 19.dp, bottom = 17.dp)
-                .height(58.dp)
-        ) {
-            Row(
-                Modifier.fillMaxSize().padding(5.dp),
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TeacherTab.entries.forEach { item ->
-                    val isActive = item == activeTab
-                    Box(
-                        modifier = Modifier.weight(1f).fillMaxSize()
-                            .background(if (isActive) Color.White else Color.Transparent, CircleShape)
-                            .semantics {
-                                selected = isActive
-                                contentDescription = item.label
-                            }
-                            .clickable(role = Role.Tab) { tab = item.name },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        BasicText(
-                            item.label,
-                            style = teacherStyle(
-                                12,
-                                if (isActive) FontWeight.SemiBold else FontWeight.Medium,
-                                if (isActive) MyDeckDesign.ink else Color.White
-                            )
-                        )
-                    }
-                }
-            }
-        }
+        )
     }
 }
 

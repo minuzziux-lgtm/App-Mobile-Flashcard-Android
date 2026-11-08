@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
@@ -25,10 +24,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.myapplication.ui.screens.auth.TelaPerfilAluno
 import com.example.myapplication.demo.LocalMyDeckStore
 import com.example.myapplication.ui.navigation.BottomFrostedBackdrop
 import com.example.myapplication.ui.navigation.MyDeckBottomBar
+import com.example.myapplication.ui.navigation.MyDeckNavItem
 import com.example.myapplication.ui.navigation.StudentTab
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
@@ -38,7 +37,6 @@ fun StudentHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
     val nav = rememberNavController()
     val currentEntry by nav.currentBackStackEntryAsState()
     val hazeState = remember { HazeState() }
-    var scrollToReviewsRequest by remember { mutableIntStateOf(0) }
     var selectedClassId by rememberSaveable { mutableStateOf<String?>(null) }
     val currentRoute = currentEntry?.destination?.route ?: StudentTab.HOME.route
 
@@ -66,8 +64,7 @@ fun StudentHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
                 composable(StudentTab.HOME.route) {
                     HomeAluno(
                         onOpenClasses = { navigateTo(StudentTab.CLASSES) },
-                        onOpenDecks = { navigateTo(StudentTab.DECKS) },
-                        scrollToReviewsRequest = scrollToReviewsRequest
+                        onOpenDecks = { navigateTo(StudentTab.DECKS) }
                     )
                 }
                 composable(StudentTab.CLASSES.route) {
@@ -90,8 +87,11 @@ fun StudentHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
                         onSelectClass = { selectedClassId = it }
                     )
                 }
-                composable(StudentTab.PROFILE.route) {
-                    TelaPerfilAluno(onSair = onLogout)
+                composable(StudentTab.DATA.route) {
+                    StudentSection(
+                        "Dados.",
+                        "Seu histórico e desempenho aparecerão após as primeiras revisões."
+                    )
                 }
             }
         }
@@ -102,18 +102,17 @@ fun StudentHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
         )
 
         MyDeckBottomBar(
-            currentRoute = currentRoute,
+            currentId = currentRoute,
+            items = StudentTab.entries.map { MyDeckNavItem(it.route, it.label) },
             hazeState = hazeState,
-            reviewCount = 40,
-            onReviewClick = {
-                scrollToReviewsRequest += 1
-                navigateTo(StudentTab.HOME)
+            onNavigate = { id ->
+                StudentTab.entries.firstOrNull { it.route == id }?.let(::navigateTo)
             },
-            onNavigate = ::navigateTo,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.navigationBars).padding(start = 19.dp, end = 19.dp, bottom = 17.dp)
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(start = 19.dp, end = 19.dp, bottom = 17.dp)
         )
     }
 }
