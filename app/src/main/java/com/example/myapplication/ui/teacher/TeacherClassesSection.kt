@@ -1,18 +1,32 @@
 package com.example.myapplication.ui.teacher
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.demo.DemoClass
 import com.example.myapplication.ui.design.MyDeckButton
 import com.example.myapplication.ui.design.MyDeckButtonVariant
+import com.example.myapplication.ui.design.MyDeckDesign
 
 @Composable
 internal fun TeacherClassesSection(
@@ -21,6 +35,8 @@ internal fun TeacherClassesSection(
     onOpenClass: (String) -> Unit
 ) {
     var name by rememberSaveable { mutableStateOf("") }
+    var copiedCode by rememberSaveable { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
     Column {
         TeacherTitle("Turmas.")
         Spacer(androidx.compose.ui.Modifier.height(14.dp))
@@ -47,8 +63,39 @@ internal fun TeacherClassesSection(
             TeacherEmpty("Nenhuma turma criada ainda.")
         } else {
             classes.forEach { classroom ->
-                TeacherItemRow(classroom.name, "Código: " + classroom.joinCode + "  ·  Abrir decks") {
-                    onOpenClass(classroom.id)
+                TeacherDivider()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable(role = Role.Button) { onOpenClass(classroom.id) }
+                            .padding(vertical = 17.dp)
+                    ) {
+                        BasicText(
+                            classroom.name,
+                            style = teacherStyle(16, FontWeight.Medium, MyDeckDesign.ink)
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        TeacherBody("Código: " + classroom.joinCode + "  ·  Abrir decks")
+                    }
+                    BasicText(
+                        if (copiedCode == classroom.joinCode) "Copiado" else "Copiar",
+                        modifier = Modifier
+                            .clickable(role = Role.Button) {
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
+                                        as ClipboardManager
+                                clipboard.setPrimaryClip(
+                                    ClipData.newPlainText("Código da turma", classroom.joinCode)
+                                )
+                                copiedCode = classroom.joinCode
+                            }
+                            .padding(horizontal = 12.dp, vertical = 18.dp),
+                        style = teacherStyle(13, FontWeight.Medium, MyDeckDesign.ink)
+                    )
                 }
             }
         }
