@@ -89,6 +89,14 @@ fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
                                 selectedClassId = id
                                 selectedDeckId = null
                                 tab = TeacherTab.DECKS.name
+                            },
+                            onRenameClass = store::renameClass,
+                            onDeleteClass = { id ->
+                                store.deleteClass(id)
+                                if (selectedClassId == id) {
+                                    selectedClassId = null
+                                    selectedDeckId = null
+                                }
                             }
                         )
                     }
