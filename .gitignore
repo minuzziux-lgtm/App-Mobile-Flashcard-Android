@@ -14,3 +14,6 @@
 .cxx
 local.properties
 /.idea/
+
+# Configuracao Firebase do ambiente
+/app/google-services.json
