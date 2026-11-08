@@ -19,14 +19,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Install Android SDK 37
+      - name: Install Android SDK 37.0
         run: |
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
           if [ -z "$SDKMANAGER" ]; then echo "sdkmanager not found"; exit 1; fi
           yes | "$SDKMANAGER" --licenses > /dev/null || true
-          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
+          "$SDKMANAGER" "platforms;android-37.0" "build-tools;36.0.0" --channel=3
       - name: Build and unit tests
         run: |
-          sed -i -e 's/version = release(37)/version = release(36)/' -e 's/targetSdk = 37/targetSdk = 36/' app/build.gradle.kts
           chmod +x ./gradlew
           ./gradlew --no-daemon --console=plain :app:assembleDebug :app:testDebugUnitTest
