@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -42,6 +43,7 @@ import com.example.myapplication.ui.navigation.BottomFrostedBackdrop
 import com.example.myapplication.ui.navigation.SmokedGlassSurface
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import java.util.UUID
 
 private enum class TeacherTab(val label: String) {
     HOME("Início"), CLASSES("Turmas"), DECKS("Decks"), PERFORMANCE("Dados")
@@ -49,6 +51,8 @@ private enum class TeacherTab(val label: String) {
 
 @Composable
 fun TeacherHomeShell(onLogout: () -> Unit = {}) {
+    val classes = remember { mutableStateListOf<TeacherClass>() }
+    var selectedClassId by rememberSaveable { mutableStateOf<String?>(null) }
     var tab by rememberSaveable { mutableStateOf(TeacherTab.HOME.name) }
     val activeTab = TeacherTab.entries.firstOrNull { it.name == tab } ?: TeacherTab.HOME
     val hazeState = remember { HazeState() }
@@ -77,14 +81,27 @@ fun TeacherHomeShell(onLogout: () -> Unit = {}) {
                 Spacer(Modifier.height(54.dp))
                 when (activeTab) {
                     TeacherTab.HOME -> TeacherDashboard(
-                        0,
+                        classes.size,
                         0,
                         0,
                         onClasses = { tab = TeacherTab.CLASSES.name },
                         onDecks = { tab = TeacherTab.DECKS.name }
                     )
                     TeacherTab.CLASSES -> {
-                        TeacherPlaceholder("Turmas.", "A criação de turmas será adicionada nesta etapa.")
+                        TeacherClassesSection(
+                            classes = classes,
+                            onCreateClass = { name ->
+                                val created = TeacherClass(UUID.randomUUID().toString(), name)
+                                classes.add(created)
+                                selectedClassId = created.id
+                                
+                            },
+                            onOpenClass = { id ->
+                                selectedClassId = id
+                                
+                                tab = TeacherTab.DECKS.name
+                            }
+                        )
                     }
                     TeacherTab.DECKS -> {
                         TeacherPlaceholder("Decks.", "Os decks e cartões serão adicionados na próxima etapa.")
