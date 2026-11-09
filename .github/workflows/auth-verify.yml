@@ -20,15 +20,25 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: gradle
       - name: Install Android SDK
         run: |
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
           if [ -z "$SDKMANAGER" ]; then echo 'sdkmanager not found'; exit 1; fi
           yes | "$SDKMANAGER" --licenses > /dev/null || true
           "$SDKMANAGER" "platforms;android-37.0" "build-tools;36.0.0" --channel=3
-      - name: Compilar APK de debug e executar testes unitarios
+      - name: Preparar Gradle com retentativas em falhas de rede
         run: |
           chmod +x ./gradlew
+          for attempt in 1 2 3; do
+            if ./gradlew --version; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep 20
+          done
+      - name: Compilar APK de debug e executar testes unitarios
+        run: |
           ./gradlew --no-daemon --console=plain :app:assembleDebug :app:testDebugUnitTest
 
       - name: Guardar relatorios de teste
