@@ -26,7 +26,17 @@ jobs:
           if [ -z "$SDKMANAGER" ]; then echo 'sdkmanager not found'; exit 1; fi
           yes | "$SDKMANAGER" --licenses > /dev/null || true
           "$SDKMANAGER" "platforms;android-37.0" "build-tools;36.0.0" --channel=3
-      - name: Compile and test
+      - name: Compilar APK de debug e executar testes unitarios
         run: |
           chmod +x ./gradlew
           ./gradlew --no-daemon --console=plain :app:assembleDebug :app:testDebugUnitTest
+
+      - name: Guardar relatorios de teste
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mydeck-test-reports
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
+          if-no-files-found: ignore
