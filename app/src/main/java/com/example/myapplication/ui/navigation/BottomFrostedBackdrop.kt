@@ -4,10 +4,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.ui.design.MyDeckDesign
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -19,16 +19,17 @@ fun BottomFrostedBackdrop(
     hazeState: HazeState,
     modifier: Modifier = Modifier
 ) {
-    val style = remember {
-        HazeStyle(
-            backgroundColor = Color(0xFFF8F8F7),
-            blurRadius = 36.dp,
-            tint = HazeTint(
-                Color.White.copy(alpha = 0.18f)
-            ),
-            noiseFactor = 0.01f
-        )
-    }
+    // Recompute when theme changes: a light fallback caused a white strip in dark mode.
+    val dark = MyDeckDesign.darkMode
+    val style = HazeStyle(
+        backgroundColor = if (dark) Color(0xFF141414) else Color(0xFFF8F8F7),
+        blurRadius = 36.dp,
+        tint = HazeTint(
+            if (dark) Color(0xFF111217).copy(alpha = 0.38f)
+            else Color.White.copy(alpha = 0.12f)
+        ),
+        noiseFactor = 0.01f
+    )
 
     Box(
         modifier = modifier
