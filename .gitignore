@@ -23,3 +23,6 @@ local.properties
 /.mydeck-test-credentials.local.json
 /.env
 /.env.*
+
+# APKs gerados localmente para testes
+/dist/
