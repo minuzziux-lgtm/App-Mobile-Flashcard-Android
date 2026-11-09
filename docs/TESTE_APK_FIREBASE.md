@@ -18,11 +18,14 @@ No terminal PowerShell do Android Studio, a partir da raiz do projeto:
 ```powershell
 git status --short
 git branch --show-current
+git remote -v
+# Se origin apontar para App-Mobile-Flashcard-Android e nao houver alteracoes locais:
+git switch main
 git pull --ff-only origin main
 powershell -ExecutionPolicy Bypass -File .\scripts\build-firebase-apk.ps1
 ```
 
-Se `git status --short` exibir alterações locais, revise-as antes de executar `pull`; não descarte alterações. Se `origin` não for o repositório público, confira com `git remote -v`.
+Se `git status --short` exibir alterações locais, revise-as antes de executar `git switch` ou `pull`; não descarte alterações. Se `origin` não for o repositório público, faça a atualização a partir do remoto correto ou abra um clone separado do repositório público.
 
 O script interrompe se `app/google-services.json` não existir, pertencer a outro projeto ou não tiver o pacote correto. Ele executa a tarefa Google Services, os testes unitários e o build do APK, sem escrever dados remotos.
 
