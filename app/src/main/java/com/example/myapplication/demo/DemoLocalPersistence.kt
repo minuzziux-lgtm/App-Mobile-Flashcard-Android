@@ -3,10 +3,18 @@ package com.example.myapplication.demo
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
+import com.example.myapplication.study.StudyReview
 
-internal class DemoLocalPersistence(context: Context) {
+internal class DemoLocalPersistence(context: Context, namespace: String = "demo") {
+    private val storageName = if (namespace == "demo") "mydeck_local_demo_v2" else {
+        val hash = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(namespace.toByteArray(Charsets.UTF_8))
+            .take(12)
+            .joinToString("") { byte -> "%02x".format(byte) }
+        "mydeck_user_${hash}_v1"
+    }
     private val preferences = context.applicationContext.getSharedPreferences(
-        "mydeck_local_demo_v2", Context.MODE_PRIVATE
+        storageName, Context.MODE_PRIVATE
     )
 
     fun restore(store: LocalMyDeckStore) {
@@ -49,11 +57,30 @@ internal class DemoLocalPersistence(context: Context) {
                 ))
             }
             store.enrolledClassIds.addAll(root.optJSONArray("enrolledClassIds").texts())
+            root.optJSONArray("userEnrollments").items().forEach { item ->
+                store.userEnrollments.add(DemoEnrollment(item.getString("classId"), item.getString("studentId")))
+            }
             store.availableTags.addAll(
                 root.optJSONArray("availableTags").texts().ifEmpty {
                     store.cards.flatMap { it.tags }.distinct()
                 }
             )
+            for (item in root.optJSONArray("reviews").items()) {
+                store.reviews.add(StudyReview(
+                    id = item.getString("id"),
+                    studentId = item.getString("studentId"),
+                    deckId = item.getString("deckId"),
+                    cardId = item.getString("cardId"),
+                    classId = if (item.isNull("classId")) null else item.optString("classId"),
+                    correct = if (item.isNull("correct")) null else item.optBoolean("correct"),
+                    writtenResponse = if (item.isNull("writtenResponse")) null else item.optString("writtenResponse"),
+                    tags = item.optJSONArray("tags").texts(),
+                    reviewedAtEpochMillis = item.getLong("reviewedAtEpochMillis"),
+                    dueAtEpochMillis = item.getLong("dueAtEpochMillis"),
+                    intervalDays = item.optInt("intervalDays", 0),
+                    repetitions = item.optInt("repetitions", 0)
+                ))
+            }
             if (root.has("participants")) {
                 root.optJSONArray("participants").items().forEach { participant ->
                     store.participants.add(DemoParticipant(
@@ -78,8 +105,10 @@ internal class DemoLocalPersistence(context: Context) {
             store.decks.clear()
             store.cards.clear()
             store.enrolledClassIds.clear()
+            store.userEnrollments.clear()
             store.availableTags.clear()
             store.participants.clear()
+            store.reviews.clear()
         }
     }
 
@@ -111,12 +140,32 @@ internal class DemoLocalPersistence(context: Context) {
             }
         })
         snapshot.put("enrolledClassIds", JSONArray(store.enrolledClassIds))
+        snapshot.put("userEnrollments", JSONArray().apply {
+            store.userEnrollments.forEach { value ->
+                put(JSONObject().put("classId", value.classId).put("studentId", value.studentId))
+            }
+        })
         snapshot.put("availableTags", JSONArray(store.availableTags))
         snapshot.put("participants", JSONArray().apply {
             store.participants.forEach { value ->
                 put(JSONObject().put("id", value.id).put("classId", value.classId)
                     .put("username", value.username)
                     .put("isCurrentDemoStudent", value.isCurrentDemoStudent))
+            }
+        })
+        snapshot.put("reviews", JSONArray().apply {
+            store.reviews.forEach { item ->
+                put(JSONObject()
+                    .put("id", item.id).put("studentId", item.studentId)
+                    .put("deckId", item.deckId).put("cardId", item.cardId)
+                    .put("classId", item.classId ?: JSONObject.NULL)
+                    .put("correct", item.correct ?: JSONObject.NULL)
+                    .put("writtenResponse", item.writtenResponse ?: JSONObject.NULL)
+                    .put("tags", JSONArray(item.tags))
+                    .put("reviewedAtEpochMillis", item.reviewedAtEpochMillis)
+                    .put("dueAtEpochMillis", item.dueAtEpochMillis)
+                    .put("intervalDays", item.intervalDays)
+                    .put("repetitions", item.repetitions))
             }
         })
         preferences.edit().putString("snapshot", snapshot.toString()).apply()

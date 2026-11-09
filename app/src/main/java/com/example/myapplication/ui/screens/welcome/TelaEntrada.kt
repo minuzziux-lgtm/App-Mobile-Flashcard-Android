@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.screens.welcome
 
 import androidx.compose.foundation.background
+import com.example.myapplication.ui.design.MyDeckDesign
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,9 +50,9 @@ private val fonteMyDeck = FontFamily(
     Font(R.font.inter_semibold, FontWeight.SemiBold)
 )
 
-private val corPrincipal = Color(0xFF171717)
-private val corSecundaria = Color(0xFF595959)
-private val corBotao = Color(0xFFF1F1F1)
+private val corPrincipal get() = MyDeckDesign.ink
+private val corSecundaria get() = MyDeckDesign.secondary
+private val corBotao get() = MyDeckDesign.lightButton
 
 @Composable
 fun TelaEntrada(
@@ -77,7 +78,7 @@ fun TelaEntrada(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MyDeckDesign.background)
             .windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
         val espacoParaImagem = maxHeight * 0.34f

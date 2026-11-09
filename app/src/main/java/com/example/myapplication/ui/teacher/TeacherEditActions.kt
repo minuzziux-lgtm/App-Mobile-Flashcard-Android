@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -19,8 +20,10 @@ import com.example.myapplication.ui.design.MyDeckDesign
 internal fun TeacherAction(label: String, onClick: () -> Unit) {
     BasicText(
         label,
-        modifier = Modifier.clickable(role = Role.Button, onClick = onClick)
-            .padding(end = 12.dp, top = 14.dp, bottom = 14.dp),
+        modifier = Modifier
+            .heightIn(min = 48.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 14.dp),
         style = teacherStyle(12, FontWeight.Medium, MyDeckDesign.ink)
     )
 }

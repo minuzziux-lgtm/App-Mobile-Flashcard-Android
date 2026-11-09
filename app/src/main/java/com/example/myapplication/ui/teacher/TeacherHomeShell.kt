@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.teacher
 
+import android.content.pm.ApplicationInfo
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +22,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import com.example.myapplication.data.CloudMyDeckState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.ui.design.MyDeckButton
 import com.example.myapplication.ui.design.MyDeckButtonVariant
 import com.example.myapplication.ui.design.MyDeckDesign
+import com.example.myapplication.ui.design.MyDeckLocale
+import com.example.myapplication.ui.design.MyDeckDimensions
 import com.example.myapplication.ui.navigation.BottomFrostedBackdrop
 import com.example.myapplication.ui.navigation.MyDeckBottomBar
 import com.example.myapplication.ui.navigation.MyDeckNavItem
@@ -46,12 +52,20 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import com.example.myapplication.demo.LocalMyDeckStore
 
-private enum class TeacherTab(val label: String) {
-    HOME("Início"), CLASSES("Turmas"), DECKS("Decks"), PERFORMANCE("Dados")
+private enum class TeacherTab(private val pt: String, private val en: String) {
+    HOME("Início", "Home"), CLASSES("Turmas", "Classes"),
+    DECKS("Decks", "Decks"), PERFORMANCE("Dados", "Data");
+    val label: String get() = MyDeckLocale.text(pt, en)
 }
 
 @Composable
-fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
+fun TeacherHomeShell(
+    store: LocalMyDeckStore,
+    onLogout: () -> Unit = {},
+    email: String? = null,
+    cloud: CloudMyDeckState? = null
+) {
+    LaunchedEffect(cloud) { cloud?.refresh() }
     val classes = store.classes
     var selectedClassId by rememberSaveable { mutableStateOf<String?>(null) }
     val decks = store.decks
@@ -60,47 +74,107 @@ fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
     var tab by rememberSaveable { mutableStateOf(TeacherTab.HOME.name) }
     val activeTab = TeacherTab.entries.firstOrNull { it.name == tab } ?: TeacherTab.HOME
     val hazeState = remember { HazeState() }
+    var showProfile by rememberSaveable { mutableStateOf(false) }
 
-    Box(Modifier.fillMaxSize().background(Color.White)) {
+    Box(Modifier.fillMaxSize().background(MyDeckDesign.background)) {
         LazyColumn(
             modifier = Modifier.fillMaxSize()
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .hazeSource(hazeState),
-            contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 112.dp, bottom = 168.dp)
+            contentPadding = PaddingValues(start = MyDeckDimensions.screenPadding, end = MyDeckDimensions.screenPadding, top = MyDeckDimensions.contentTop, bottom = MyDeckDimensions.contentBottom)
         ) {
             item {
-                when (activeTab) {
+                if (cloud != null) {
+                    TeacherBody(
+                        when {
+                            cloud.loading -> "Carregando dados do Firebase..."
+                            cloud.notice != null -> cloud.notice.orEmpty()
+                            else -> "Conta autenticada · biblioteca Firebase"
+                        }
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    MyDeckButton(
+                        "Atualizar dados do Firebase",
+                        MyDeckButtonVariant.LIGHT,
+                        onClick = { cloud.refresh() }
+                    )
+                    Spacer(Modifier.height(26.dp))
+                }
+                if (showProfile) {
+                    TeacherTitle("Perfil.")
+                    Spacer(Modifier.height(24.dp))
+                    TeacherLabel("PROFESSOR")
+                    Spacer(Modifier.height(14.dp))
+                    TeacherBody(email ?: "Modo demonstrativo sem e-mail autenticado.")
+                    Spacer(Modifier.height(28.dp))
+                    val uiContext = LocalContext.current
+                    MyDeckButton(
+                        MyDeckLocale.text("Idioma: Português", "Language: English"),
+                        MyDeckButtonVariant.LIGHT,
+                        onClick = { MyDeckLocale.toggle(uiContext) }
+                    )
+                    androidx.compose.foundation.layout.Spacer(Modifier.padding(vertical = 6.dp))
+                    MyDeckButton(
+                        if (MyDeckDesign.darkMode) "Usar tema claro" else "Usar tema escuro",
+                        MyDeckButtonVariant.LIGHT,
+                        onClick = { MyDeckDesign.toggleTheme(uiContext) }
+                    )
+                    androidx.compose.foundation.layout.Spacer(Modifier.padding(vertical = 6.dp))
+                    MyDeckButton(MyDeckLocale.text("Voltar", "Back"), MyDeckButtonVariant.LIGHT, onClick = { showProfile = false })
+                    Spacer(Modifier.height(12.dp))
+                    MyDeckButton(MyDeckLocale.text("Sair da conta", "Sign out"), MyDeckButtonVariant.DARK, onClick = onLogout)
+                } else when (activeTab) {
                     TeacherTab.HOME -> TeacherDashboard(
                         classes.size,
                         decks.size,
                         cards.size,
                         onClasses = { tab = TeacherTab.CLASSES.name },
-                        onDecks = { tab = TeacherTab.DECKS.name }
+                        onDecks = { tab = TeacherTab.DECKS.name },
+                        onLoadDemo = store::seedDemoScenario,
+                        cloudMode = cloud != null
                     )
                     TeacherTab.CLASSES -> {
                         TeacherClassesSection(
                             classes = classes,
+                            decks = decks,
+                            cards = cards,
                             participants = store.participants,
-                            onAddParticipant = store::addDemoParticipant,
-                            onRemoveParticipant = store::removeDemoParticipant,
+                            onAddParticipant = { classId, name ->
+                                if (cloud == null) store.addDemoParticipant(classId, name)
+                            },
+                            onRemoveParticipant = { id ->
+                                if (cloud == null) store.removeDemoParticipant(id)
+                                else cloud.removeStudent(id)
+                            },
                             onCreateClass = { name ->
-                                val created = store.createClass(name)
-                                selectedClassId = created.id
-                                selectedDeckId = null
+                                if (cloud == null) {
+                                    val created = store.createClass(name)
+                                    selectedClassId = created.id
+                                    selectedDeckId = null
+                                } else cloud.createClass(name) { createdId ->
+                                    selectedClassId = createdId
+                                    selectedDeckId = null
+                                }
                             },
                             onOpenClass = { id ->
                                 selectedClassId = id
                                 selectedDeckId = null
                                 tab = TeacherTab.DECKS.name
                             },
-                            onRenameClass = store::renameClass,
+                            onRenameClass = { id, name ->
+                                if (cloud == null) store.renameClass(id, name)
+                                else cloud.renameClass(id, name)
+                            },
                             onDeleteClass = { id ->
-                                store.deleteClass(id)
-                                if (selectedClassId == id) {
-                                    selectedClassId = null
-                                    selectedDeckId = null
+                                if (cloud == null) {
+                                    store.deleteClass(id)
+                                    if (selectedClassId == id) {
+                                        selectedClassId = null
+                                        selectedDeckId = null
+                                    }
                                 }
-                            }
+                            },
+                            cloudMode = cloud != null
                         )
                     }
                     TeacherTab.DECKS -> {
@@ -114,38 +188,65 @@ fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
                             onDeleteTag = store::deleteTag,
                             selectedClassId = selectedClassId,
                             selectedDeckId = selectedDeckId,
-                            onSelectClass = { selectedClassId = it; selectedDeckId = null },
-                            onCreateDeck = { classId, title ->
-                                val created = store.createDeck(classId, title)
-                                selectedDeckId = created.id
+                            onSelectClass = {
+                                selectedClassId = it.takeIf(String::isNotBlank)
+                                selectedDeckId = null
                             },
-                            onRenameDeck = store::renameDeck,
-                            onAssignDeck = store::assignDeckToClasses,
+                            onCreateDeck = { classId, title ->
+                                if (cloud == null) {
+                                    val created = store.createDeck(classId, title)
+                                    selectedClassId = classId.takeIf(String::isNotBlank)
+                                    selectedDeckId = created.id
+                                } else cloud.createDeck(classId, title) { createdId ->
+                                    selectedClassId = classId.takeIf(String::isNotBlank)
+                                    selectedDeckId = createdId
+                                }
+                            },
+                            onRenameDeck = { id, title ->
+                                if (cloud == null) store.renameDeck(id, title)
+                                else cloud.renameDeck(id, title)
+                            },
+                            onAssignDeck = { deckId, classIds ->
+                                if (cloud == null) store.assignDeckToClasses(deckId, classIds)
+                                else cloud.assignDeck(deckId, classIds)
+                                if (selectedClassId != null && selectedClassId !in classIds) {
+                                    selectedClassId = null
+                                }
+                            },
                             onDeleteDeck = { id ->
-                                store.deleteDeck(id)
-                                if (selectedDeckId == id) selectedDeckId = null
+                                if (cloud == null) {
+                                    store.deleteDeck(id)
+                                    if (selectedDeckId == id) selectedDeckId = null
+                                }
                             },
                             onSelectDeck = { selectedDeckId = it },
                             onAddCard = { deckId, draft ->
-                                store.addCard(deckId, draft)
+                                if (cloud == null) store.addCard(deckId, draft)
+                                else cloud.addCard(deckId, draft)
                             },
-                            onUpdateCard = store::updateCard,
-                            onDuplicateCard = { store.duplicateCard(it) },
-                            onDeleteCard = store::deleteCard,
-                            onOpenClasses = { tab = TeacherTab.CLASSES.name }
+                            onUpdateCard = { id, draft ->
+                                if (cloud == null) store.updateCard(id, draft)
+                                else cloud.updateCard(id, draft)
+                            },
+                            onDuplicateCard = { id ->
+                                if (cloud == null) store.duplicateCard(id)
+                                else cloud.duplicateCard(id)
+                            },
+                            onDeleteCard = { id ->
+                                if (cloud == null) store.deleteCard(id)
+                                else cloud.deleteCard(id)
+                            },
+                            onOpenClasses = { tab = TeacherTab.CLASSES.name },
+                            cloudMode = cloud != null
                         )
                     }
-                    TeacherTab.PERFORMANCE -> {
-                        TeacherTitle("Desempenho.")
-                        Spacer(Modifier.height(14.dp))
-                        TeacherBody("Acompanhe alunos, turmas e decks após as primeiras sessões de estudo.")
-                        Spacer(Modifier.height(42.dp))
-                        TeacherDivider()
-                        Spacer(Modifier.height(22.dp))
-                        TeacherLabel("01  /  ATIVIDADE")
-                        Spacer(Modifier.height(34.dp))
-                        TeacherEmpty("Sem revisões registradas. Gráficos e filtros serão integrados depois.")
-                    }
+                    TeacherTab.PERFORMANCE -> TeacherPerformanceSection(
+                        reviews = store.reviews,
+                        classes = store.classes,
+                        decks = store.decks,
+                        participants = store.participants,
+                        cloudMode = cloud != null
+                    )
                 }
             }
         }
@@ -153,6 +254,7 @@ fun TeacherHomeShell(store: LocalMyDeckStore, onLogout: () -> Unit = {}) {
         MyDeckTopBar(
             role = "PROFESSOR",
             onLogout = onLogout,
+            onProfile = { showProfile = !showProfile },
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .windowInsetsPadding(WindowInsets.statusBars)
@@ -180,8 +282,12 @@ private fun TeacherDashboard(
     deckCount: Int,
     cardCount: Int,
     onClasses: () -> Unit,
-    onDecks: () -> Unit
+    onDecks: () -> Unit,
+    onLoadDemo: () -> Boolean,
+    cloudMode: Boolean = false
 ) {
+    val ctx = LocalContext.current
+    val debugMode = (ctx.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
     Column {
         TeacherTitle("Sua área de\nensino.")
         Spacer(Modifier.height(16.dp))
@@ -205,7 +311,18 @@ private fun TeacherDashboard(
         Spacer(Modifier.height(12.dp))
         MyDeckButton("Gerenciar decks", MyDeckButtonVariant.LIGHT, onClick = onDecks)
         Spacer(Modifier.height(52.dp))
-        TeacherBody("Dados locais de demonstração. Nada foi publicado no Firebase.")
+        TeacherBody(
+            if (cloudMode) "Dados carregados do Firebase para esta conta."
+            else "Dados locais de demonstração. Nada foi publicado no Firebase."
+        )
+        if (!cloudMode && debugMode && classCount == 0 && deckCount == 0) {
+            Spacer(Modifier.height(16.dp))
+            MyDeckButton(
+                "Carregar cenário de teste",
+                MyDeckButtonVariant.LIGHT,
+                onClick = { onLoadDemo() }
+            )
+        }
     }
 }
 

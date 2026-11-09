@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,15 +25,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.design.MyDeckDesign
+import com.example.myapplication.ui.design.MyDeckDimensions
 
 @Composable
 fun StudentSectionRow(title: String, subtitle: String, onClick: () -> Unit) {
     Column {
-        Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFE8E8E8)))
         Row(
             modifier = Modifier.fillMaxWidth()
                 .clickable(role = Role.Button, onClick = onClick)
-                .padding(vertical = 22.dp),
+                .padding(vertical = 28.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -47,8 +48,8 @@ fun StudentSectionRow(title: String, subtitle: String, onClick: () -> Unit) {
                 BasicText(
                     subtitle,
                     style = TextStyle(
-                        fontFamily = MyDeckDesign.font, fontSize = 12.sp,
-                        color = MyDeckDesign.secondary
+                        fontFamily = MyDeckDesign.font, fontSize = 14.sp,
+                        lineHeight = 21.sp, color = MyDeckDesign.secondary
                     )
                 )
             }
@@ -64,7 +65,8 @@ fun StudentSection(
     content: @Composable ColumnScope.() -> Unit = {}
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(start = 27.dp, end = 27.dp, top = 112.dp, bottom = 168.dp)
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = MyDeckDimensions.screenPadding, end = MyDeckDimensions.screenPadding, top = MyDeckDimensions.contentTop, bottom = MyDeckDimensions.contentBottom)
     ) {
         item {
             Column {
@@ -83,7 +85,7 @@ fun StudentSection(
                         color = MyDeckDesign.secondary
                     )
                 )
-                Spacer(Modifier.height(39.dp))
+                Spacer(Modifier.height(48.dp))
                 content()
             }
         }

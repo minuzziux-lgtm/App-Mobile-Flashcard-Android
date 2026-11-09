@@ -50,6 +50,9 @@ data class DemoCard(
     val mediaLink: DemoMediaLink? = null
 )
 
+/** Matrícula identificada por usuário; o perfil demo mantém compatibilidade legada. */
+data class DemoEnrollment(val classId: String, val studentId: String)
+
 data class DemoParticipant(
     val id: String,
     val classId: String,

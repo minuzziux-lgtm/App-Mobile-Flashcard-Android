@@ -34,7 +34,8 @@ fun StudentClassesScreen(
     classes: List<DemoClass>,
     deckCounts: Map<String, Int>,
     onJoinClass: (String) -> JoinClassResult,
-    onOpenDecks: (String) -> Unit
+    onOpenDecks: (String) -> Unit,
+    onJoinClassAsync: ((String, (Boolean, String) -> Unit) -> Unit)? = null
 ) {
     var code by rememberSaveable { mutableStateOf("") }
     var feedback by rememberSaveable { mutableStateOf<String?>(null) }
@@ -88,13 +89,21 @@ fun StudentClassesScreen(
         MyDeckButton(
             "Entrar na turma", MyDeckButtonVariant.DARK,
             onClick = if (code.length == 8) ({
-                feedback = when (val result = onJoinClass(code)) {
-                    is JoinClassResult.Joined -> {
-                        code = ""
-                        "Você entrou na turma " + result.classroom.name + "."
+                if (onJoinClassAsync != null) {
+                    feedback = "Validando matrícula no Firebase..."
+                    onJoinClassAsync(code) { success, message ->
+                        if (success) code = ""
+                        feedback = message
                     }
-                    JoinClassResult.AlreadyJoined -> "Você já participa desta turma."
-                    JoinClassResult.NotFound -> "Código não encontrado nesta prévia."
+                } else {
+                    feedback = when (val result = onJoinClass(code)) {
+                        is JoinClassResult.Joined -> {
+                            code = ""
+                            "Você entrou na turma " + result.classroom.name + "."
+                        }
+                        JoinClassResult.AlreadyJoined -> "Você já participa desta turma."
+                        JoinClassResult.NotFound -> "Código não encontrado nesta prévia."
+                    }
                 }
             }) else null
         )

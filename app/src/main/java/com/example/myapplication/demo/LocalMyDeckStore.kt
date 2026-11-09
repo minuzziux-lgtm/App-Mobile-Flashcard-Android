@@ -5,15 +5,20 @@ import androidx.compose.runtime.mutableStateListOf
 import java.security.SecureRandom
 import java.util.Locale
 import java.util.UUID
+import com.example.myapplication.study.StudyReview
+import com.example.myapplication.study.scheduleReview
+import com.example.myapplication.study.isReviewDue
 
-class LocalMyDeckStore(context: Context? = null) {
-    private val persistence = context?.let(::DemoLocalPersistence)
+class LocalMyDeckStore(context: Context? = null, namespace: String = "demo") {
+    private val persistence = context?.let { DemoLocalPersistence(it, namespace) }
     val classes = mutableStateListOf<DemoClass>()
     val decks = mutableStateListOf<DemoDeck>()
     val cards = mutableStateListOf<DemoCard>()
     val enrolledClassIds = mutableStateListOf<String>()
+    val userEnrollments = mutableStateListOf<DemoEnrollment>()
     val availableTags = mutableStateListOf<String>()
     val participants = mutableStateListOf<DemoParticipant>()
+    val reviews = mutableStateListOf<StudyReview>()
 
     init {
         persistence?.restore(this)
@@ -30,6 +35,33 @@ class LocalMyDeckStore(context: Context? = null) {
             code = (1..8).map { alphabet[random.nextInt(alphabet.length)] }.joinToString("")
         } while (classes.any { it.joinCode == code })
         return code
+    }
+
+    /** Disponível para testes: só povoa uma biblioteca local completamente vazia. */
+    fun seedDemoScenario(): Boolean {
+        if (classes.isNotEmpty() || decks.isNotEmpty() || cards.isNotEmpty()) return false
+        val classroom = createClass("Turma demonstração")
+        val deck = createDeck(classroom.id, "Exemplos de flashcards")
+        addCard(deck.id, DemoCardDraft(
+            DemoCardType.BASIC, "Qual é a capital do Brasil?", "Brasília", tags = listOf("geografia")
+        ))
+        addCard(deck.id, DemoCardDraft(
+            DemoCardType.MULTIPLE_CHOICE, "Quanto é 2 + 2?", "4",
+            tags = listOf("matemática"), options = listOf("3", "4", "5"), correctOptionIndex = 1
+        ))
+        addCard(deck.id, DemoCardDraft(
+            DemoCardType.CLOZE, "O sol nasce no ___.", "leste", tags = listOf("geografia")
+        ))
+        addCard(deck.id, DemoCardDraft(
+            DemoCardType.REVERSIBLE, "Hello", "Olá", tags = listOf("idiomas"),
+            frontLanguage = "Inglês", backLanguage = "Português"
+        ))
+        addCard(deck.id, DemoCardDraft(
+            DemoCardType.OPEN_ENDED, "Explique com suas palavras o que é aprender.",
+            tags = listOf("reflexão")
+        ))
+        joinByCode(classroom.joinCode)
+        return true
     }
 
     fun createClass(name: String): DemoClass {
@@ -50,14 +82,11 @@ class LocalMyDeckStore(context: Context? = null) {
 
     fun deleteClass(classId: String) {
         require(classes.any { it.id == classId })
-        val deckIds = decks.filter {
-            it.classId == classId && it.assignedClassIds.none { assigned -> assigned != classId }
-        }.map { it.id }.toSet()
-        cards.removeAll { it.deckId in deckIds }
+        // Decks são reutilizáveis: excluir uma turma só remove seus vínculos.
+        // Flashcards permanecem no deck e podem ser atribuídos a outras turmas.
         for (index in decks.indices.reversed()) {
             val deck = decks[index]
-            if (deck.id in deckIds) decks.removeAt(index)
-            else if (deck.classId == classId || classId in deck.assignedClassIds) {
+            if (deck.classId == classId || classId in deck.assignedClassIds) {
                 decks[index] = deck.copy(
                     classId = if (deck.classId == classId) "" else deck.classId,
                     assignedClassIds = deck.assignedClassIds.filterNot { it == classId }
@@ -65,6 +94,7 @@ class LocalMyDeckStore(context: Context? = null) {
             }
         }
         enrolledClassIds.remove(classId)
+        userEnrollments.removeAll { it.classId == classId }
         participants.removeAll { it.classId == classId }
         classes.removeAll { it.id == classId }
         persist()
@@ -222,9 +252,50 @@ class LocalMyDeckStore(context: Context? = null) {
         persist()
     }
 
-    fun joinByCode(rawCode: String): JoinClassResult {
+    /** Idempotente por sessão e cartão; permite corrigir uma avaliação antes de avançar. */
+    fun recordReview(review: StudyReview) {
+        val index = reviews.indexOfFirst { it.id == review.id }
+        val previous = reviews
+            .filter { it.id != review.id && it.studentId == review.studentId && it.cardId == review.cardId }
+            .maxByOrNull { it.reviewedAtEpochMillis }
+        val scheduled = scheduleReview(review, previous)
+        if (index >= 0) reviews[index] = scheduled else reviews.add(scheduled)
+        persist()
+    }
+
+    /** Retorna somente cartões atribuídos a turmas da matrícula demonstrativa local. */
+    fun enrolledForStudent(studentId: String): List<String> =
+        if (studentId == "@aluno-demo") enrolledClassIds.toList()
+        else userEnrollments.filter { it.studentId == studentId }.map { it.classId }
+
+    fun pendingCards(
+        nowEpochMillis: Long = System.currentTimeMillis(),
+        studentId: String = "@aluno-demo"
+    ): List<DemoCard> {
+        val memberships = enrolledForStudent(studentId).toSet()
+        val permittedDeckIds = decks.filter { deck ->
+            deck.assignedClassIds.any { it in memberships }
+        }.map { it.id }.toSet()
+        val latest = reviews.filter { it.studentId == studentId }
+            .groupBy { it.cardId }
+            .mapValues { (_, items) -> items.maxByOrNull { it.reviewedAtEpochMillis } }
+        return cards.filter { card ->
+            card.deckId in permittedDeckIds && isReviewDue(latest[card.id], nowEpochMillis)
+        }
+    }
+
+    fun joinByCode(rawCode: String, studentId: String = "@aluno-demo"): JoinClassResult {
+        require(studentId.isNotBlank())
         val code = rawCode.trim().uppercase(Locale.ROOT)
         val classroom = classes.firstOrNull { it.joinCode == code } ?: return JoinClassResult.NotFound
+        if (studentId != "@aluno-demo") {
+            if (userEnrollments.any { it.classId == classroom.id && it.studentId == studentId }) {
+                return JoinClassResult.AlreadyJoined
+            }
+            userEnrollments.add(DemoEnrollment(classroom.id, studentId))
+            persist()
+            return JoinClassResult.Joined(classroom)
+        }
         if (classroom.id in enrolledClassIds) return JoinClassResult.AlreadyJoined
         enrolledClassIds.add(classroom.id)
         if (participants.none { it.classId == classroom.id && it.isCurrentDemoStudent }) {

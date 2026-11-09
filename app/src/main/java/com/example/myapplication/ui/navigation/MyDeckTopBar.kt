@@ -18,18 +18,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.design.MyDeckDesign
+import com.example.myapplication.ui.design.MyDeckLocale
+import com.example.myapplication.ui.design.MyDeckDimensions
 
 @Composable
 fun MyDeckTopBar(
     role: String,
     onLogout: () -> Unit,
+    onProfile: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.White)
-            .heightIn(min = 56.dp),
+            .background(MyDeckDesign.background)
+            .heightIn(min = MyDeckDimensions.minimumTouchHeight),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -42,17 +45,28 @@ fun MyDeckTopBar(
                 color = MyDeckDesign.ink
             )
         )
-        BasicText(
-            text = "Sair",
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (onProfile != null) {
+                BasicText(
+                    text = MyDeckLocale.text("Perfil", "Profile"),
+                    modifier = Modifier.clickable(role = Role.Button, onClick = onProfile)
+                        .padding(horizontal = 16.dp, vertical = 18.dp),
+                    style = TextStyle(fontFamily = MyDeckDesign.font, fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium, color = MyDeckDesign.secondary)
+                )
+            }
+            BasicText(
+            text = MyDeckLocale.text("Sair", "Exit"),
             modifier = Modifier
                 .clickable(role = Role.Button, onClick = onLogout)
-                .padding(horizontal = 8.dp, vertical = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 18.dp),
             style = TextStyle(
                 fontFamily = MyDeckDesign.font,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 color = MyDeckDesign.secondary
             )
-        )
+            )
+        }
     }
 }

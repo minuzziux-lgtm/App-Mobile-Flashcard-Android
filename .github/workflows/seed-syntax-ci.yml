@@ -1,0 +1,28 @@
+name: MyDeck - validar seed administrativo (sem gravações)
+
+on:
+  push:
+    branches:
+      - dev/mydeck-private
+    paths:
+      - 'scripts/seed-real-mydeck.mjs'
+      - 'package.json'
+      - '.github/workflows/seed-syntax-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar dependencias sem scripts
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Validar sintaxe e plano sem conectar ao Firebase
+        run: npm run test:seed

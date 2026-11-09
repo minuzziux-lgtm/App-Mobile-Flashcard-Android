@@ -17,3 +17,9 @@ local.properties
 
 # Firebase project configuration
 /app/google-services.json
+
+# Nunca versionar senhas ou dependências de seed administrativo
+/node_modules/
+/.mydeck-test-credentials.local.json
+/.env
+/.env.*
