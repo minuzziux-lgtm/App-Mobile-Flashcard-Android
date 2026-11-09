@@ -32,34 +32,41 @@ import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.design.MyDeckButton
 import com.example.myapplication.ui.design.MyDeckButtonVariant
 import com.example.myapplication.ui.design.MyDeckDesign
+import com.example.myapplication.ui.design.MyDeckLocale
+import com.example.myapplication.ui.design.MyDeckDimensions
 
-private val editorialDivider = Color(0xFFE3E3E1)
-private val editorialMuted = Color(0xFF777774)
+private val editorialDivider get() = MyDeckDesign.line
+private val editorialMuted get() = MyDeckDesign.secondary
 
-/** Editorial student home. Demo review counts until study data is connected. */
+/** Home do aluno: recebe contagens reais do repositório local. */
 @Composable
 fun HomeAluno(
     onOpenClasses: () -> Unit,
     onOpenDecks: () -> Unit,
     modifier: Modifier = Modifier,
-    sampleReviewCount: Int = 40,
-    scrollToReviewsRequest: Int = 0
+    reviewCount: Int = 0,
+    scrollToReviewsRequest: Int = 0,
+    studyCount: Int = 0,
+    onStartStudy: () -> Unit = {},
+    onStartReviews: () -> Unit = {},
+    cloudStatus: String? = null,
+    onRefresh: (() -> Unit)? = null
 ) {
     val listState = rememberLazyListState()
-    val showDemoNotice = remember { mutableStateOf(false) }
+    val visibleDots = com.example.myapplication.study.reviewIndicator(reviewCount).filledDots
 
     LaunchedEffect(scrollToReviewsRequest) {
         if (scrollToReviewsRequest > 0) listState.animateScrollToItem(1)
     }
 
     LazyColumn(
-        modifier = modifier.fillMaxSize().background(Color.White),
+        modifier = modifier.fillMaxSize().background(MyDeckDesign.background),
         state = listState,
-        contentPadding = PaddingValues(start = 26.dp, end = 26.dp, top = 112.dp, bottom = 168.dp)
+        contentPadding = PaddingValues(start = MyDeckDimensions.screenPadding, end = MyDeckDimensions.screenPadding, top = MyDeckDimensions.contentTop, bottom = MyDeckDimensions.contentBottom)
     ) {
         item(key = "apresentacao") {
             BasicText(
-                text = "Aprenda no\nseu ritmo.",
+                text = MyDeckLocale.text("Aprenda no\nseu ritmo.", "Learn at\nyour pace."),
                 style = TextStyle(
                     fontFamily = MyDeckDesign.font,
                     fontSize = 42.sp,
@@ -70,8 +77,36 @@ fun HomeAluno(
                 )
             )
             Spacer(Modifier.height(19.dp))
-            EditorialBody("Organize seus estudos e retome de onde parou.")
-            Spacer(Modifier.height(80.dp))
+            EditorialBody(MyDeckLocale.text("Organize seus estudos e retome de onde parou.", "Organize your studies and pick up where you left off."))
+            if (onRefresh != null) {
+                Spacer(Modifier.height(18.dp))
+                EditorialBody(cloudStatus ?: "Dados da conta conectada ao Firebase.", 13)
+                Spacer(Modifier.height(12.dp))
+                MyDeckButton("Atualizar dados", MyDeckButtonVariant.LIGHT, onClick = onRefresh)
+            }
+            Spacer(Modifier.height(32.dp))
+            MyDeckButton(
+                label = MyDeckLocale.text("Estudar cartões", "Study flashcards"),
+                variant = MyDeckButtonVariant.DARK,
+                onClick = if (studyCount > 0) onStartStudy else null
+            )
+            Spacer(Modifier.height(12.dp))
+            if (studyCount == 0) {
+                EditorialBody(
+                    MyDeckLocale.text(
+                        "Nenhum deck disponível. Entre em uma turma com flashcards atribuídos.",
+                        "No deck available. Join a class with assigned flashcards."
+                    ), 13
+                )
+            } else {
+                EditorialBody(
+                    MyDeckLocale.text(
+                        "$studyCount cartões disponíveis para estudar.",
+                        "$studyCount flashcards available to study."
+                    ), 13
+                )
+            }
+            Spacer(Modifier.height(64.dp))
         }
 
         item(key = "revisoes") {
@@ -90,7 +125,7 @@ fun HomeAluno(
                 verticalAlignment = Alignment.Bottom
             ) {
                 BasicText(
-                    sampleReviewCount.toString(),
+                    reviewCount.toString(),
                     style = TextStyle(
                         fontFamily = MyDeckDesign.font,
                         fontSize = 76.sp,
@@ -117,7 +152,7 @@ fun HomeAluno(
                         modifier = Modifier
                             .size(7.dp)
                             .background(
-                                if (index < sampleReviewCount.coerceIn(0, 40)) MyDeckDesign.ink else editorialDivider,
+                                if (index < visibleDots) MyDeckDesign.ink else editorialDivider,
                                 CircleShape
                             )
                     )
@@ -125,14 +160,17 @@ fun HomeAluno(
             }
             Spacer(Modifier.height(34.dp))
             MyDeckButton(
-                label = "Começar revisão",
+                label = MyDeckLocale.text("Começar revisão", "Start reviewing"),
                 variant = MyDeckButtonVariant.DARK,
-                onClick = { showDemoNotice.value = true }
+                onClick = if (reviewCount > 0) onStartReviews else null
             )
-            if (showDemoNotice.value) {
-                Spacer(Modifier.height(13.dp))
-                EditorialBody("O modo de revisão será conectado aos decks na próxima etapa.", 12)
-            }
+            Spacer(Modifier.height(13.dp))
+            EditorialBody(
+                if (reviewCount == 0) "Nenhuma revisão pendente. Crie ou entre em uma turma e estude um deck."
+                else if (reviewCount > 40) "$reviewCount revisões pendentes; o indicador mostra até 40 pontos."
+                else "Inicia diretamente a revisão dos seus cartões pendentes.",
+                12
+            )
             Spacer(Modifier.height(88.dp))
         }
 
@@ -163,7 +201,7 @@ fun HomeAluno(
                 )
             )
             Spacer(Modifier.height(19.dp))
-            EditorialBody("Seu histórico aparecerá após as primeiras sessões de estudo.")
+            EditorialBody("O histórico e a frequência são calculados a partir das suas revisões locais.")
             Spacer(Modifier.height(45.dp))
             ThinEditorialLine()
             Spacer(Modifier.height(24.dp))

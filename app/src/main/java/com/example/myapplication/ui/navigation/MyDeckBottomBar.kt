@@ -28,13 +28,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.design.MyDeckDesign
+import com.example.myapplication.ui.design.MyDeckLocale
 import dev.chrisbanes.haze.HazeState
 
-enum class StudentTab(val route: String, val label: String) {
-    HOME("inicio", "Início"),
-    CLASSES("turmas", "Turmas"),
-    DECKS("decks", "Decks"),
-    DATA("dados", "Dados")
+enum class StudentTab(val route: String, private val ptLabel: String, private val enLabel: String) {
+    HOME("inicio", "Início", "Home"),
+    CLASSES("turmas", "Turmas", "Classes"),
+    DECKS("decks", "Decks", "Decks"),
+    DATA("dados", "Dados", "Data");
+    val label: String get() = MyDeckLocale.text(ptLabel, enLabel)
 }
 
 data class MyDeckNavItem(val id: String, val label: String)
@@ -78,7 +80,7 @@ fun MyDeckBottomBar(
                             fontFamily = MyDeckDesign.font,
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-                            color = if (isSelected) MyDeckDesign.ink else Color(0xFFF4F4F2),
+                            color = if (isSelected) Color(0xFF171717) else Color(0xFFF4F4F2),
                             textAlign = TextAlign.Center
                         )
                     )
