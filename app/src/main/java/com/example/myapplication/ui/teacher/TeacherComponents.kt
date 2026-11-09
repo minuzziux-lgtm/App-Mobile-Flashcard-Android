@@ -3,6 +3,8 @@ package com.example.myapplication.ui.teacher
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -61,7 +64,7 @@ internal fun TeacherTitle(text: String) {
 
 @Composable
 internal fun TeacherDivider() {
-    Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFE3E3E1)))
+    Box(Modifier.fillMaxWidth().height(1.dp).background(MyDeckDesign.line))
 }
 
 @Composable
@@ -84,11 +87,10 @@ internal fun TeacherEmpty(message: String) {
 
 @Composable
 internal fun TeacherItemRow(title: String, detail: String, onClick: (() -> Unit)? = null) {
-    TeacherDivider()
     Column(
         Modifier.fillMaxWidth()
             .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
-            .padding(vertical = 17.dp)
+            .padding(vertical = 23.dp)
     ) {
         BasicText(title, style = teacherStyle(16, FontWeight.Medium, MyDeckDesign.ink))
         Spacer(Modifier.height(6.dp))
@@ -97,18 +99,27 @@ internal fun TeacherItemRow(title: String, detail: String, onClick: (() -> Unit)
 }
 
 @Composable
-internal fun TeacherSelectionRow(title: String, isSelected: Boolean, onClick: () -> Unit) {
+internal fun TeacherSelectionRow(
+    title: String,
+    isSelected: Boolean,
+    multiSelect: Boolean = false,
+    onClick: () -> Unit
+) {
+    val selection = if (multiSelect) {
+        Modifier.toggleable(value = isSelected, role = Role.Checkbox, onValueChange = { onClick() })
+    } else {
+        Modifier.selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick)
+    }
     Box(
         Modifier.fillMaxWidth()
-            .padding(bottom = 8.dp)
-            .border(1.dp, if (isSelected) MyDeckDesign.ink else Color(0xFFDADADA), CircleShape)
-            .clickable(role = Role.RadioButton, onClick = onClick)
-            .semantics { selected = isSelected }
-            .padding(horizontal = 17.dp, vertical = 13.dp)
+            .padding(bottom = 12.dp)
+            .border(1.dp, if (isSelected) MyDeckDesign.ink else MyDeckDesign.line, CircleShape)
+            .then(selection)
+            .padding(horizontal = 19.dp, vertical = 18.dp)
     ) {
         BasicText(
             title,
-            style = teacherStyle(13, if (isSelected) FontWeight.SemiBold else FontWeight.Normal, MyDeckDesign.ink)
+            style = teacherStyle(14, if (isSelected) FontWeight.SemiBold else FontWeight.Normal, MyDeckDesign.ink)
         )
     }
 }
@@ -125,12 +136,13 @@ internal fun TeacherInput(label: String, hint: String, value: String, onChange: 
             cursorBrush = SolidColor(MyDeckDesign.ink),
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 45.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                .semantics { contentDescription = label },
             decorationBox = { field ->
                 Column {
                     Box(Modifier.fillMaxWidth().heightIn(min = 44.dp), contentAlignment = Alignment.CenterStart) {
                         if (value.isBlank()) {
-                            BasicText(hint, style = teacherStyle(15, FontWeight.Normal, Color(0xFF888888)))
+                            BasicText(hint, style = teacherStyle(15, FontWeight.Normal, MyDeckDesign.secondary))
                         }
                         field()
                     }

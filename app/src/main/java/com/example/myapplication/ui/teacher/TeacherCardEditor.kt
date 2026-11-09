@@ -16,6 +16,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
@@ -131,7 +133,7 @@ internal fun TeacherCardEditor(
         Spacer(Modifier.height(9.dp))
         availableTags.forEach { available ->
             val current = tags.split(',').map(String::trim).filter(String::isNotBlank)
-            TeacherSelectionRow(available, current.any { it.equals(available, ignoreCase = true) }) {
+            TeacherSelectionRow(available, current.any { it.equals(available, ignoreCase = true) }, multiSelect = true) {
                 tags = if (current.any { it.equals(available, ignoreCase = true) }) {
                     current.filterNot { it.equals(available, ignoreCase = true) }.joinToString(", ")
                 } else (current + available).joinToString(", ")
@@ -220,7 +222,8 @@ private fun MultiLineInput(label: String, value: String, onChange: (String) -> U
             singleLine = false,
             textStyle = teacherStyle(15, FontWeight.Normal, MyDeckDesign.ink),
             cursorBrush = SolidColor(MyDeckDesign.ink),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 90.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 90.dp)
+                .semantics { contentDescription = label },
             decorationBox = { field ->
                 Column {
                     Box(Modifier.fillMaxWidth().heightIn(min = 87.dp), contentAlignment = Alignment.TopStart) {

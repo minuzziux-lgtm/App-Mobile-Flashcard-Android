@@ -28,13 +28,16 @@ import com.example.myapplication.ui.design.MyDeckDesign
 @Composable
 internal fun TeacherClassesSection(
     classes: List<DemoClass>,
+    decks: List<com.example.myapplication.demo.DemoDeck>,
+    cards: List<com.example.myapplication.demo.DemoCard>,
     participants: List<DemoParticipant>,
     onAddParticipant: (String, String) -> Unit,
     onRemoveParticipant: (String) -> Unit,
     onCreateClass: (String) -> Unit,
     onOpenClass: (String) -> Unit,
     onRenameClass: (String, String) -> Unit,
-    onDeleteClass: (String) -> Unit
+    onDeleteClass: (String) -> Unit,
+    cloudMode: Boolean = false
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var copiedCode by rememberSaveable { mutableStateOf<String?>(null) }
@@ -68,13 +71,24 @@ internal fun TeacherClassesSection(
         Spacer(Modifier.height(15.dp))
         if (classes.isEmpty()) TeacherEmpty("Nenhuma turma criada ainda.")
         classes.forEach { classroom ->
-            TeacherDivider()
-            Spacer(Modifier.height(15.dp))
+            Spacer(Modifier.height(28.dp))
             BasicText(classroom.name, style = teacherStyle(16, FontWeight.Medium, MyDeckDesign.ink))
             Spacer(Modifier.height(7.dp))
             TeacherBody("Código: " + classroom.joinCode)
+            Spacer(Modifier.height(7.dp))
+            val attributedDecks = decks.filter { classroom.id in it.assignedClassIds }
+            val ids = attributedDecks.map { it.id }.toSet()
+            val flashcards = cards.count { it.deckId in ids }
+            TeacherBody(
+                "${attributedDecks.size} decks atribuídos · $flashcards " +
+                    if (flashcards == 1) "flashcard" else "flashcards"
+            )
+            if (attributedDecks.isNotEmpty()) {
+                Spacer(Modifier.height(5.dp))
+                TeacherBody("Decks: " + attributedDecks.joinToString(", ") { it.title })
+            }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                TeacherAction("Abrir") { onOpenClass(classroom.id) }
+                TeacherAction("Abrir decks") { onOpenClass(classroom.id) }
                 TeacherAction(if (copiedCode == classroom.joinCode) "Copiado" else "Copiar") {
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     clipboard.setPrimaryClip(ClipData.newPlainText("Código da turma", classroom.joinCode))
@@ -85,9 +99,11 @@ internal fun TeacherClassesSection(
                     deletingId = null
                     editedName = classroom.name
                 }
-                TeacherAction("Excluir") {
-                    deletingId = classroom.id
-                    editingId = null
+                if (!cloudMode) {
+                    TeacherAction("Excluir") {
+                        deletingId = classroom.id
+                        editingId = null
+                    }
                 }
                 TeacherAction("Alunos") {
                     expandedParticipantsId = if (expandedParticipantsId == classroom.id) null else classroom.id
@@ -108,7 +124,7 @@ internal fun TeacherClassesSection(
             }
             if (deletingId == classroom.id) {
                 TeacherConfirmDelete(
-                    "Excluir a turma também excluirá os seus decks e cartões locais.",
+                    "Excluir esta turma remove suas matrículas e atribuições. Os decks e flashcards serão preservados e poderão ser usados em outras turmas.",
                     onConfirm = {
                         onDeleteClass(classroom.id)
                         deletingId = null
@@ -124,34 +140,40 @@ internal fun TeacherClassesSection(
                 Spacer(Modifier.height(17.dp))
                 TeacherLabel("PARTICIPANTES  ·  " + members.size)
                 Spacer(Modifier.height(9.dp))
-                TeacherBody("Participantes demonstrativos, sem contas ou matrículas reais no Firebase.")
-                Spacer(Modifier.height(16.dp))
-                TeacherInput("Adicionar @ de teste", "Ex.: @maria", participantName) {
-                    participantName = it
-                }
-                Spacer(Modifier.height(12.dp))
-                val clean = participantName.trim().removePrefix("@").lowercase()
-                val valid = Regex("^[a-z0-9_-]{3,24}$").matches(clean)
-                val alreadyExists = members.any { it.username == "@"+clean }
-                MyDeckButton("Adicionar participante", MyDeckButtonVariant.DARK,
-                    onClick = if (valid && !alreadyExists) ({
-                        onAddParticipant(classroom.id, participantName)
-                        participantName = ""
-                    }) else null
+                TeacherBody(
+                    if (cloudMode) "Matrículas reais confirmadas no Firebase. Compartilhe o código para adicionar alunos."
+                    else "Participantes demonstrativos, sem contas ou matrículas reais no Firebase."
                 )
+                if (!cloudMode) {
+                    Spacer(Modifier.height(16.dp))
+                    TeacherInput("Adicionar @ de teste", "Ex.: @maria", participantName) {
+                        participantName = it
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    val clean = participantName.trim().removePrefix("@").lowercase()
+                    val valid = Regex("^[a-z0-9_-]{3,24}$").matches(clean)
+                    val alreadyExists = members.any { it.username == "@"+clean }
+                    MyDeckButton("Adicionar participante", MyDeckButtonVariant.DARK,
+                        onClick = if (valid && !alreadyExists) ({
+                            onAddParticipant(classroom.id, participantName)
+                            participantName = ""
+                        }) else null
+                    )
+                }
                 Spacer(Modifier.height(16.dp))
                 if (members.isEmpty()) {
-                    TeacherEmpty("Nenhum participante de demonstração.")
+                    TeacherEmpty(if (cloudMode) "Ainda não há alunos matriculados." else "Nenhum participante de demonstração.")
                 }
                 members.forEach { participant ->
                     TeacherItemRow(
                         participant.username,
-                        if (participant.isCurrentDemoStudent) "Perfil atual da prévia do aluno" else "Participante fictício"
+                        if (cloudMode) "Aluno matriculado no Firebase"
+                        else if (participant.isCurrentDemoStudent) "Perfil atual da prévia do aluno" else "Participante fictício"
                     )
                     TeacherAction("Remover") { deletingParticipantId = participant.id }
                     if (deletingParticipantId == participant.id) {
                         TeacherConfirmDelete(
-                            "Remover este participante desta turma? Se for o aluno da prévia, sua matrícula local será removida.",
+                            if (cloudMode) "Remover a matrícula deste aluno no Firebase?" else "Remover este participante desta turma? Se for o aluno da prévia, sua matrícula local será removida.",
                             onConfirm = {
                                 onRemoveParticipant(participant.id)
                                 deletingParticipantId = null
@@ -161,7 +183,7 @@ internal fun TeacherClassesSection(
                     }
                 }
             }
-            Spacer(Modifier.height(17.dp))
+            Spacer(Modifier.height(29.dp))
         }
     }
 }

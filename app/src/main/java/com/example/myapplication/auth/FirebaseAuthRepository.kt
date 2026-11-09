@@ -150,5 +150,8 @@ class FirebaseAuthRepository private constructor(
         }
     }
 
+    fun currentEmail(): String? = auth.currentUser?.email
+    fun currentUserId(): String? = auth.currentUser?.uid
+
     fun signOut() = auth.signOut()
 }
