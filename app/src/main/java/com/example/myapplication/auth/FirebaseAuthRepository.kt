@@ -128,11 +128,19 @@ class FirebaseAuthRepository private constructor(
                         onResult(AuthResult.Success(kind))
                     } else {
                         auth.signOut()
-                        onResult(AuthResult.Failure(
-                            if (kind == AccountKind.TEACHER)
-                                "O acesso de professor ainda não está autorizado para esta conta."
-                            else "Esta conta não possui acesso como aluno."
-                        ))
+                        val message = when {
+                            storedRole == "pending_teacher" ->
+                                "Seu e-mail foi confirmado, mas a conta de professor ainda aguarda aprovação do administrador. Entre novamente após a aprovação."
+                            storedRole == null ->
+                                "O perfil desta conta não foi encontrado no Firestore. Confira a configuração e o cadastro."
+                            kind == AccountKind.TEACHER && storedRole == "student" ->
+                                "Esta conta foi cadastrada como aluno. Para acessar como professor, é necessário um perfil de professor aprovado."
+                            kind == AccountKind.STUDENT && storedRole == "teacher" ->
+                                "Esta conta é de professor. Selecione a opção Professor na entrada."
+                            else ->
+                                "O perfil desta conta não permite o acesso selecionado. Confira o tipo de conta."
+                        }
+                        onResult(AuthResult.Failure(message))
                     }
                 }
             }
