@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.ui.design.MyDeckDesign
+import com.example.myapplication.ui.design.MyDeckDimensions
 import com.example.myapplication.ui.design.MyDeckLocale
 import dev.chrisbanes.haze.HazeState
 
@@ -53,7 +54,7 @@ fun MyDeckBottomBar(
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    SmokedGlassSurface(hazeState, modifier.fillMaxWidth().height(58.dp)) {
+    SmokedGlassSurface(hazeState, modifier.fillMaxWidth().height(MyDeckDimensions.navigationHeight)) {
         Row(
             modifier = Modifier.fillMaxSize().padding(5.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp),

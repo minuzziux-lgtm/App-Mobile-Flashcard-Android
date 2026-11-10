@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import com.example.myapplication.ui.design.MyDeckDesign
+import com.example.myapplication.ui.design.MyDeckDimensions
 import com.example.myapplication.ui.design.MyDeckLocale
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -221,7 +222,7 @@ fun StudentHomeShell(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(start = 19.dp, end = 19.dp, bottom = 17.dp)
+                .padding(start = MyDeckDimensions.navigationHorizontalInset, end = MyDeckDimensions.navigationHorizontalInset, bottom = MyDeckDimensions.navigationBottomInset)
         )
     }
 }

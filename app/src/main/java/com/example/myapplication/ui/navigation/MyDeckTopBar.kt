@@ -40,7 +40,7 @@ fun MyDeckTopBar(
             text = role,
             style = TextStyle(
                 fontFamily = MyDeckDesign.font,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MyDeckDesign.ink
             )
@@ -50,7 +50,7 @@ fun MyDeckTopBar(
                 BasicText(
                     text = MyDeckLocale.text("Perfil", "Profile"),
                     modifier = Modifier.clickable(role = Role.Button, onClick = onProfile)
-                        .padding(horizontal = 16.dp, vertical = 18.dp),
+                        .padding(horizontal = 14.dp, vertical = 18.dp),
                     style = TextStyle(fontFamily = MyDeckDesign.font, fontSize = 12.sp,
                         fontWeight = FontWeight.Medium, color = MyDeckDesign.secondary)
                 )
@@ -59,7 +59,7 @@ fun MyDeckTopBar(
             text = MyDeckLocale.text("Sair", "Exit"),
             modifier = Modifier
                 .clickable(role = Role.Button, onClick = onLogout)
-                .padding(horizontal = 16.dp, vertical = 18.dp),
+                .padding(horizontal = 14.dp, vertical = 18.dp),
             style = TextStyle(
                 fontFamily = MyDeckDesign.font,
                 fontSize = 12.sp,

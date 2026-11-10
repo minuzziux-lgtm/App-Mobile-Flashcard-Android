@@ -73,11 +73,11 @@ fun StudentSection(
                 BasicText(
                     text = title,
                     style = TextStyle(
-                        fontFamily = MyDeckDesign.font, fontSize = 35.sp, lineHeight = 43.sp,
+                        fontFamily = MyDeckDesign.font, fontSize = 36.sp, lineHeight = 44.sp,
                         fontWeight = FontWeight.SemiBold, color = MyDeckDesign.ink
                     )
                 )
-                Spacer(Modifier.height(17.dp))
+                Spacer(Modifier.height(20.dp))
                 BasicText(
                     text = description,
                     style = TextStyle(

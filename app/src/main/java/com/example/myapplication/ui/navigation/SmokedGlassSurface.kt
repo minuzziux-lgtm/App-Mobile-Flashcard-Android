@@ -49,16 +49,16 @@ fun SmokedGlassSurface(
         HazeStyle(
             // Fallback under the captured pixels, not an opaque overlay.
             backgroundColor = Color(0xFF34373C),
-            blurRadius = 34.dp,
+            blurRadius = 38.dp,
             tint = HazeTint(Color(0x68191B20)),
-            noiseFactor = 0.025f
+            noiseFactor = 0.018f
         )
     }
 
     Box(
         modifier = modifier
             .shadow(
-                elevation = 13.dp,
+                elevation = 11.dp,
                 shape = CircleShape,
                 ambientColor = Color(0x26000000),
                 spotColor = Color(0x32000000)

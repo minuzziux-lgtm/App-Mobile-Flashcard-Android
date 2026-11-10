@@ -38,6 +38,9 @@ object MyDeckDimensions {
     val contentTop = 112.dp
     val contentBottom = 168.dp
     val minimumTouchHeight = 48.dp
+    val navigationHeight = 58.dp
+    val navigationHorizontalInset = 19.dp
+    val navigationBottomInset = 17.dp
     val sectionGap = 56.dp
     val contentGap = 24.dp
 }
@@ -57,6 +60,8 @@ object MyDeckDesign {
     val line: Color get() = if (darkMode) Color(0xFF444444) else Color(0xFFC7C7C7)
     val lightButton: Color get() = if (darkMode) Color(0xFF333333) else Color(0xFFF1F1F1)
     val fieldBackground: Color get() = if (darkMode) Color(0xFF292929) else Color(0xFFF2F2F1)
+    val muted: Color get() = if (darkMode) Color(0xFF999999) else Color(0xFF777777)
+    val glassBackdrop: Color get() = if (darkMode) Color(0xFF141414) else Color(0xFFF8F8F7)
     val error: Color get() = if (darkMode) Color(0xFFFFA59B) else Color(0xFFB42318)
 
     fun loadTheme(context: Context) {

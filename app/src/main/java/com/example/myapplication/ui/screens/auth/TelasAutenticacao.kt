@@ -318,7 +318,7 @@ private fun AuthLineInput(
                                 style = TextStyle(
                                     fontFamily = MyDeckDesign.font,
                                     fontSize = 15.sp,
-                                    color = Color(0xFF888888)
+                                    color = MyDeckDesign.muted
                                 )
                             )
                             field()
