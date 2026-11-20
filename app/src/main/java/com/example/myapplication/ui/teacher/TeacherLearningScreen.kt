@@ -279,7 +279,7 @@ internal fun TeacherLearningScreen(
                         FeedbackUnderstanding.CLEAR -> "Entendeu bem"
                         FeedbackUnderstanding.PARTIAL -> "Entendeu parcialmente"
                         FeedbackUnderstanding.DIFFICULT -> "Relatou dificuldade"
-                    } + if (fb.comment.isBlank()) "" else " · ${fb.comment}")
+                    } + (if (fb.comment.isBlank()) "" else " · ${fb.comment}"))
                 }
                 if (items.isEmpty()) TeacherBody("Nenhuma avaliação recebida ainda.")
             }
