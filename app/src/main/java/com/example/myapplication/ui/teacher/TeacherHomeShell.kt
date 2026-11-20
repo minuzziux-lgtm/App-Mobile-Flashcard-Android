@@ -72,6 +72,7 @@ fun TeacherHomeShell(
     val classes = store.classes
     var selectedClassId by rememberSaveable { mutableStateOf<String?>(null) }
     var showLearning by rememberSaveable { mutableStateOf(false) }
+    var recentlyCreatedClassId by rememberSaveable { mutableStateOf<String?>(null) }
     val featureContext = LocalContext.current
     val learning = remember(featureContext, uid) { LearningFeatureStore(featureContext, uid) }
     LaunchedEffect(classes.map { it.id }, uid) {
@@ -161,13 +162,17 @@ fun TeacherHomeShell(
                                 if (cloud == null) store.removeDemoParticipant(id)
                                 else cloud.removeStudent(id)
                             },
+                            recentlyCreatedClassId = recentlyCreatedClassId,
+                            onDismissCreated = { recentlyCreatedClassId = null },
                             onCreateClass = { name ->
                                 if (cloud == null) {
                                     val created = store.createClass(name)
                                     selectedClassId = created.id
+                                    recentlyCreatedClassId = created.id
                                     selectedDeckId = null
                                 } else cloud.createClass(name) { createdId ->
                                     selectedClassId = createdId
+                                    recentlyCreatedClassId = createdId
                                     selectedDeckId = null
                                 }
                             },
