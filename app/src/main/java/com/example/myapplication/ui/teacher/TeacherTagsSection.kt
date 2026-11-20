@@ -40,8 +40,11 @@ internal fun TeacherTagsSection(
     )
     Spacer(Modifier.height(19.dp))
     tags.forEach { tag ->
-        TeacherDivider()
-        TeacherItemRow(tag, "Disponível em todos os cartões da demonstração")
+        TeacherSelectionRow("#$tag", editing == tag) {
+            editing = if (editing == tag) null else tag
+            editName = tag
+            deleting = null
+        }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TeacherAction("Editar") {
                 editing = tag
