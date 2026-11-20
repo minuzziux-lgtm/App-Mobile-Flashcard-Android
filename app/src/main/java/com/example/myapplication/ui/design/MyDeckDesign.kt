@@ -57,6 +57,8 @@ object MyDeckDesign {
     val background: Color get() = if (darkMode) Color(0xFF141414) else Color.White
     val ink: Color get() = if (darkMode) Color(0xFFF4F4F4) else Color(0xFF171717)
     val secondary: Color get() = if (darkMode) Color(0xFFC5C5C5) else Color(0xFF595959)
+    val inputLine: Color get() = if (darkMode) Color(0xFFB8B8B8) else Color(0xFF767676)
+    val chipStroke: Color get() = if (darkMode) Color(0xFFA8A8A8) else Color(0xFF777777)
     val line: Color get() = if (darkMode) Color(0xFF444444) else Color(0xFFC7C7C7)
     val lightButton: Color get() = if (darkMode) Color(0xFF333333) else Color(0xFFF1F1F1)
     val fieldBackground: Color get() = if (darkMode) Color(0xFF292929) else Color(0xFFF2F2F1)
