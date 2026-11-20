@@ -35,6 +35,7 @@ fun StudentClassesScreen(
     deckCounts: Map<String, Int>,
     onJoinClass: (String) -> JoinClassResult,
     onOpenDecks: (String) -> Unit,
+    onOpenLearning: () -> Unit = {},
     onJoinClassAsync: ((String, (Boolean, String) -> Unit) -> Unit)? = null
 ) {
     var code by rememberSaveable { mutableStateOf("") }
@@ -44,6 +45,8 @@ fun StudentClassesScreen(
         title = "Turmas.",
         description = "Entre com o código fornecido pelo professor e acesse seus decks."
     ) {
+        MyDeckButton("Aulas e materiais", MyDeckButtonVariant.LIGHT, onClick = onOpenLearning)
+        Spacer(Modifier.height(44.dp))
         BasicText(
             "01  /  ENTRAR EM UMA TURMA",
             style = TextStyle(
