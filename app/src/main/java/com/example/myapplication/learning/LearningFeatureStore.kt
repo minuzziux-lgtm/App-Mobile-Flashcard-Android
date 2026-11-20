@@ -119,6 +119,56 @@ class LearningFeatureStore(context: Context, private val accountId: String? = nu
             deckId, question.trim(), answer.trim())))
     }
 
+    /**
+     * Publicação idempotente: cada rascunho usa seu próprio ID como ID do
+     * cartão no deck. Na nuvem, cartões e conclusão são uma operação atômica.
+     */
+    fun completeLesson(
+        lesson: MyDeckLesson,
+        publishLocally: (deckId: String, question: String, answer: String) -> Unit,
+        onCloudDone: () -> Unit = {}
+    ) {
+        if (lesson.status == LessonStatus.COMPLETED) return
+        val completed = lesson.copy(
+            status = LessonStatus.COMPLETED,
+            completedAt = System.currentTimeMillis(),
+            cards = lesson.cards.map { it.copy(published = true) }
+        )
+        if (isCloud) {
+            if (db == null) { error = "Firebase indisponível"; return }
+            val batch = db.batch()
+            lesson.cards.filterNot { it.published }.forEach { card ->
+                val ref = db.collection("decks").document(card.deckId).collection("cards").document(card.id)
+                batch.set(ref, mapOf(
+                    "type" to "BASIC", "question" to card.question, "answer" to card.answer,
+                    "description" to "", "tags" to emptyList<String>(),
+                    "options" to emptyList<String>(), "correctOptionIndex" to null,
+                    "frontLanguage" to "", "backLanguage" to "", "mediaType" to "",
+                    "mediaUrl" to "", "createdAt" to com.google.firebase.firestore.FieldValue.serverTimestamp()
+                ))
+            }
+            batch.set(lessonsRef(lesson.classId).document(lesson.id), mapOf(
+                "title" to completed.title, "description" to completed.description,
+                "deckId" to completed.deckId, "status" to completed.status.name,
+                "completedAt" to completed.completedAt,
+                "draftCards" to completed.cards.map {
+                    mapOf("id" to it.id, "deckId" to it.deckId,
+                        "question" to it.question, "answer" to it.answer, "published" to true)
+                }
+            ))
+            batch.commit().addOnSuccessListener {
+                upsertLesson(completed)
+                onCloudDone()
+            }.addOnFailureListener { error = it.localizedMessage }
+        } else {
+            lesson.cards.filterNot { it.published }.forEach {
+                publishLocally(it.deckId, it.question, it.answer)
+            }
+            upsertLesson(completed)
+            persist()
+        }
+    }
+
     fun saveMaterial(item: LearningResource) {
         require(item.title.isNotBlank() && validLearningUrl(item.url))
         if (isCloud) {
