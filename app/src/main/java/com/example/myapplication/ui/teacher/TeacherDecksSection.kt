@@ -51,6 +51,7 @@ internal fun TeacherDecksSection(
     var title by rememberSaveable { mutableStateOf("") }
     var createAsGeneral by rememberSaveable { mutableStateOf(false) }
     var editingDeckId by rememberSaveable { mutableStateOf<String?>(null) }
+    var expandedDeckActionsId by rememberSaveable { mutableStateOf<String?>(null) }
     var deletingDeckId by rememberSaveable { mutableStateOf<String?>(null) }
     var editedTitle by rememberSaveable { mutableStateOf("") }
     var editingCardId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -176,22 +177,29 @@ internal fun TeacherDecksSection(
                             else "Turmas: ${assignedNames.joinToString(", ")}"
                     )
                     Spacer(Modifier.height(7.dp))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                        TeacherAction("Turmas") {
-                            onSelectDeck(deck.id)
-                            editingCardId = null
-                            editingAssignmentsId = deck.id
-                            pendingClassIds = ArrayList(deck.assignedClassIds)
-                        }
-                        TeacherAction("Editar") {
-                            editingDeckId = deck.id
-                            deletingDeckId = null
-                            editedTitle = deck.title
-                        }
-                        if (!cloudMode) {
-                            TeacherAction("Excluir") {
-                                deletingDeckId = deck.id
-                                editingDeckId = null
+                    TeacherAction(
+                        if (expandedDeckActionsId == deck.id) "Ocultar opções" else "Opções do deck"
+                    ) {
+                        expandedDeckActionsId = if (expandedDeckActionsId == deck.id) null else deck.id
+                    }
+                    if (expandedDeckActionsId == deck.id) {
+                        Column {
+                            TeacherAction("Atribuir a turmas") {
+                                onSelectDeck(deck.id)
+                                editingCardId = null
+                                editingAssignmentsId = deck.id
+                                pendingClassIds = ArrayList(deck.assignedClassIds)
+                            }
+                            TeacherAction("Renomear deck") {
+                                editingDeckId = deck.id
+                                deletingDeckId = null
+                                editedTitle = deck.title
+                            }
+                            if (!cloudMode) {
+                                TeacherAction("Excluir deck") {
+                                    deletingDeckId = deck.id
+                                    editingDeckId = null
+                                }
                             }
                         }
                     }
