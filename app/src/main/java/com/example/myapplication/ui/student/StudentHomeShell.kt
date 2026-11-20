@@ -62,6 +62,7 @@ fun StudentHomeShell(
     val nav = rememberNavController()
     val currentEntry by nav.currentBackStackEntryAsState()
     val hazeState = remember { HazeState() }
+    val motionEnabled = com.example.myapplication.ui.design.myDeckMotionEnabled()
     var selectedClassId by rememberSaveable { mutableStateOf<String?>(null) }
     var showProfile by rememberSaveable { mutableStateOf(false) }
     var showLearning by rememberSaveable { mutableStateOf(false) }
@@ -142,15 +143,15 @@ fun StudentHomeShell(
                 navController = nav,
                 startDestination = StudentTab.HOME.route,
                 enterTransition = {
-                    fadeIn(animationSpec = tween(220, delayMillis = 50)) +
+                    if (!motionEnabled) androidx.compose.animation.EnterTransition.None else fadeIn(animationSpec = tween(220, delayMillis = 50)) +
                         slideInVertically(animationSpec = tween(240, easing = FastOutSlowInEasing), initialOffsetY = { it / 32 })
                 },
-                exitTransition = { fadeOut(animationSpec = tween(100)) },
+                exitTransition = { if (!motionEnabled) androidx.compose.animation.ExitTransition.None else fadeOut(animationSpec = tween(100)) },
                 popEnterTransition = {
-                    fadeIn(animationSpec = tween(190)) +
+                    if (!motionEnabled) androidx.compose.animation.EnterTransition.None else fadeIn(animationSpec = tween(190)) +
                         slideInVertically(animationSpec = tween(210, easing = FastOutSlowInEasing), initialOffsetY = { -it / 40 })
                 },
-                popExitTransition = { fadeOut(animationSpec = tween(100)) }
+                popExitTransition = { if (!motionEnabled) androidx.compose.animation.ExitTransition.None else fadeOut(animationSpec = tween(100)) }
             ) {
                 composable(StudentTab.HOME.route) {
                     HomeAluno(
