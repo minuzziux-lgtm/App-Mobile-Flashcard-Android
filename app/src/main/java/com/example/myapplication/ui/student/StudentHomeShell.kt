@@ -37,6 +37,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.demo.LocalMyDeckStore
 import com.example.myapplication.learning.LearningFeatureStore
+import com.example.myapplication.learning.studySuggestions
 import com.example.myapplication.ui.design.MyDeckButton
 import com.example.myapplication.ui.design.MyDeckButtonVariant
 import com.example.myapplication.ui.navigation.BottomFrostedBackdrop
@@ -152,6 +153,17 @@ fun StudentHomeShell(
                                 deck.id == card.deckId &&
                                     deck.assignedClassIds.any { it in store.enrolledForStudent(studentId) }
                             }
+                        },
+                        recommendationCount = studySuggestions(
+                            store.reviews.filter { it.studentId == studentId },
+                            learning.resources,
+                            store.decks.filter { deck ->
+                                deck.assignedClassIds.any { it in store.enrolledForStudent(studentId) }
+                            }.map { it.id }.toSet()
+                        ).size,
+                        onOpenRecommendations = {
+                            navigateTo(StudentTab.CLASSES)
+                            showLearning = true
                         },
                         onStartStudy = { openStudy(dueOnly = false) },
                         onStartReviews = { openStudy(dueOnly = true) },
