@@ -74,9 +74,9 @@ fun StudentHistoryScreen(reviews: List<StudyReview>, decks: List<DemoDeck>) {
         HistoryHeader("01 / DESEMPENHO")
         Spacer(Modifier.height(16.dp))
         HistoryText("${sorted.size} registros · ${graded.size} avaliados · $accuracy% de acertos")
-        Spacer(Modifier.height(35.dp))
+        Spacer(Modifier.height(48.dp))
         StudentActivityHeatmap(sorted)
-        Spacer(Modifier.height(40.dp))
+        Spacer(Modifier.height(56.dp))
         HistoryHeader("02 / HISTÓRICO")
         Spacer(Modifier.height(16.dp))
         if (sorted.isEmpty()) {
