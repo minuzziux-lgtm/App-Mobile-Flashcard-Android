@@ -37,7 +37,7 @@ fun StudentSectionRow(title: String, subtitle: String, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 BasicText(
                     title,
                     style = TextStyle(
@@ -53,6 +53,7 @@ fun StudentSectionRow(title: String, subtitle: String, onClick: () -> Unit) {
                     )
                 )
             }
+            Spacer(Modifier.padding(horizontal = 6.dp))
             BasicText("›", style = TextStyle(fontSize = 24.sp, color = MyDeckDesign.secondary))
         }
     }
