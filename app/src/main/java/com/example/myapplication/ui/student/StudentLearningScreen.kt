@@ -1,6 +1,8 @@
 package com.example.myapplication.ui.student
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -150,7 +152,13 @@ fun StudentLearningScreen(
                     ),
                     cursorBrush = SolidColor(MyDeckDesign.ink),
                     modifier = Modifier.fillMaxWidth()
-                        .background(MyDeckDesign.fieldBackground).padding(16.dp),
+                        .background(MyDeckDesign.fieldBackground)
+                        .drawBehind {
+                            drawLine(
+                                MyDeckDesign.inputLine, Offset(0f, size.height),
+                                Offset(size.width, size.height), strokeWidth = 1.dp.toPx()
+                            )
+                        }.padding(16.dp),
                     decorationBox = { field ->
                         if (comment.isBlank()) HistoryText("O que poderia melhorar?")
                         field()
@@ -176,7 +184,13 @@ fun StudentLearningScreen(
                 fontFamily = MyDeckDesign.font, color = MyDeckDesign.ink),
             cursorBrush = SolidColor(MyDeckDesign.ink),
             modifier = Modifier.fillMaxWidth()
-                .background(MyDeckDesign.fieldBackground).padding(16.dp),
+                .background(MyDeckDesign.fieldBackground)
+                        .drawBehind {
+                            drawLine(
+                                MyDeckDesign.inputLine, Offset(0f, size.height),
+                                Offset(size.width, size.height), strokeWidth = 1.dp.toPx()
+                            )
+                        }.padding(16.dp),
             decorationBox = { field ->
                 if (generalComment.isBlank()) HistoryText("Escreva sua sugestão")
                 field()
