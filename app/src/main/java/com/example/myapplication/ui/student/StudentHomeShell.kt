@@ -3,6 +3,8 @@ package com.example.myapplication.ui.student
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import com.example.myapplication.ui.design.MyDeckDesign
@@ -138,10 +140,16 @@ fun StudentHomeShell(
             } else NavHost(
                 navController = nav,
                 startDestination = StudentTab.HOME.route,
-                enterTransition = { fadeIn(animationSpec = tween(durationMillis = 140)) },
-                exitTransition = { fadeOut(animationSpec = tween(durationMillis = 90)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(durationMillis = 140)) },
-                popExitTransition = { fadeOut(animationSpec = tween(durationMillis = 90)) }
+                enterTransition = {
+                    fadeIn(animationSpec = tween(220, delayMillis = 50)) +
+                        slideInVertically(animationSpec = tween(240, easing = FastOutSlowInEasing), initialOffsetY = { it / 32 })
+                },
+                exitTransition = { fadeOut(animationSpec = tween(100)) },
+                popEnterTransition = {
+                    fadeIn(animationSpec = tween(190)) +
+                        slideInVertically(animationSpec = tween(210, easing = FastOutSlowInEasing), initialOffsetY = { -it / 40 })
+                },
+                popExitTransition = { fadeOut(animationSpec = tween(100)) }
             ) {
                 composable(StudentTab.HOME.route) {
                     HomeAluno(
