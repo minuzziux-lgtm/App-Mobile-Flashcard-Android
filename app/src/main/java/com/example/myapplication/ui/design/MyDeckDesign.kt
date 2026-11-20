@@ -2,6 +2,12 @@ package com.example.myapplication.ui.design
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -109,8 +115,15 @@ fun MyDeckButton(
             append(label)
         }
     }
+    val source = remember { MutableInteractionSource() }
+    val pressed by source.collectIsPressedAsState()
+    val motionEnabled = myDeckMotionEnabled()
+    val pressScale by animateFloatAsState(
+        targetValue = if (pressed && motionEnabled && onClick != null) 0.985f else 1f,
+        animationSpec = tween(durationMillis = 120), label = "pressao-botao"
+    )
     val interactive = if (onClick != null) {
-        Modifier.clickable(role = Role.Button, onClick = onClick)
+        Modifier.clickable(interactionSource = source, indication = null, role = Role.Button, onClick = onClick)
     } else {
         Modifier
     }
@@ -118,6 +131,7 @@ fun MyDeckButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .graphicsLayer { scaleX = pressScale; scaleY = pressScale }
             .heightIn(min = 52.dp)
             .background(background, RoundedCornerShape(50))
             .alpha(if (onClick == null) 0.65f else 1f)
