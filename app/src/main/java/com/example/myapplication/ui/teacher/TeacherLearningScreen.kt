@@ -202,8 +202,19 @@ internal fun TeacherLearningScreen(
                     materialTags = it
                 }
                 Spacer(Modifier.height(12.dp))
-                TeacherInput("ID do cartão (opcional)", "Vincular a um flashcard", materialCardId) {
-                    materialCardId = it
+                TeacherLabel("VINCULAR A UM CARTÃO (OPCIONAL)")
+                Spacer(Modifier.height(10.dp))
+                TeacherSelectionRow("Sem cartão específico", materialCardId.isBlank()) {
+                    materialCardId = ""
+                }
+                val availableCards = local.cards.filter {
+                    selectedDeck.isBlank() || it.deckId == selectedDeck
+                }.take(50)
+                availableCards.forEach { card ->
+                    TeacherSelectionRow(
+                        card.question.take(72),
+                        materialCardId == card.id
+                    ) { materialCardId = card.id }
                 }
                 Spacer(Modifier.height(18.dp))
                 MyDeckButton("Salvar material", MyDeckButtonVariant.DARK,
