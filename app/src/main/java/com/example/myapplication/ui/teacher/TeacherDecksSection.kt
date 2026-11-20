@@ -86,7 +86,37 @@ internal fun TeacherDecksSection(
             Spacer(Modifier.height(12.dp))
             TeacherBody("${selectedCards.size} cartões neste deck")
             Spacer(Modifier.height(26.dp))
-                TeacherLabel(if (editingCardId == null) "04  /  GERENCIAR DECK" else "04  /  EDITAR CARTÃO")
+                    Spacer(Modifier.height(8.dp))
+                    TeacherLabel("01  /  CARTÕES DO DECK  ·  " + selectedCards.size)
+                    Spacer(Modifier.height(12.dp))
+                    if (selectedCards.isEmpty()) {
+                        TeacherEmpty("Este deck ainda não possui flashcards. Adicione um para permitir o estudo.")
+                    } else {
+                        selectedCards.forEach { card ->
+                            TeacherItemRow(card.question, card.type.label)
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                                TeacherAction("Editar") {
+                                    editingCardId = card.id
+                                    deletingCardId = null
+                                }
+                                TeacherAction("Duplicar") { onDuplicateCard(card.id) }
+                                TeacherAction("Excluir") {
+                                    deletingCardId = card.id
+                                    editingCardId = null
+                                }
+                            }
+                            if (deletingCardId == card.id) {
+                                TeacherConfirmDelete(
+                                    "Excluir este cartão do deck? A ação é irreversível.",
+                                    onConfirm = { onDeleteCard(card.id); deletingCardId = null },
+                                    onCancel = { deletingCardId = null }
+                                )
+                            }
+                            Spacer(Modifier.height(12.dp))
+                        }
+                    }
+                Spacer(Modifier.height(38.dp))
+                TeacherLabel(if (editingCardId == null) "02  /  GERENCIAR E ADICIONAR" else "02  /  EDITAR CARTÃO")
                 Spacer(Modifier.height(12.dp))
                 if (selectedDeck == null) {
                     TeacherBody("Selecione um deck na lista acima para definir suas turmas e gerenciar os flashcards.")
@@ -176,35 +206,7 @@ internal fun TeacherDecksSection(
                             }
                         }
                     }
-                    Spacer(Modifier.height(43.dp))
-                    TeacherLabel("05  /  FLASHCARDS DESTE DECK  ·  " + selectedCards.size)
-                    Spacer(Modifier.height(12.dp))
-                    if (selectedCards.isEmpty()) {
-                        TeacherEmpty("Este deck ainda não possui flashcards. Adicione um para permitir o estudo.")
-                    } else {
-                        selectedCards.forEach { card ->
-                            TeacherItemRow(card.question, card.type.label)
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                                TeacherAction("Editar") {
-                                    editingCardId = card.id
-                                    deletingCardId = null
-                                }
-                                TeacherAction("Duplicar") { onDuplicateCard(card.id) }
-                                TeacherAction("Excluir") {
-                                    deletingCardId = card.id
-                                    editingCardId = null
-                                }
-                            }
-                            if (deletingCardId == card.id) {
-                                TeacherConfirmDelete(
-                                    "Excluir este cartão do deck? A ação é irreversível.",
-                                    onConfirm = { onDeleteCard(card.id); deletingCardId = null },
-                                    onCancel = { deletingCardId = null }
-                                )
-                            }
-                            Spacer(Modifier.height(12.dp))
-                        }
-                    }
+
                 }
         } else {
         TeacherTitle("Decks.")
