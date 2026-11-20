@@ -146,6 +146,8 @@ internal fun TeacherInput(label: String, hint: String, value: String, onChange: 
                         }
                         field()
                     }
+                    Spacer(Modifier.height(3.dp))
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(MyDeckDesign.inputLine))
                 }
             }
         )
