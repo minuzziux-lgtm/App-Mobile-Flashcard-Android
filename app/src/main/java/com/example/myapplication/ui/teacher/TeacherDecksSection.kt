@@ -60,6 +60,7 @@ internal fun TeacherDecksSection(
     var showUnassignedOnly by rememberSaveable { mutableStateOf(false) }
     var showDeckFilters by rememberSaveable { mutableStateOf(false) }
     var showCreateDeck by rememberSaveable { mutableStateOf(false) }
+    var showTags by rememberSaveable { mutableStateOf(false) }
     var editingAssignmentsId by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingClassIds by rememberSaveable { mutableStateOf(arrayListOf<String>()) }
     var savedAssignmentDeckId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -405,10 +406,15 @@ internal fun TeacherDecksSection(
             Spacer(Modifier.height(42.dp))
             TeacherDivider()
             Spacer(Modifier.height(24.dp))
+            TeacherAction(if (showTags) "Fechar gerenciamento de tags" else "Gerenciar tags · ${availableTags.size}") {
+                showTags = !showTags
+            }
+            if (showTags) {
             if (cloudMode) {
                 TeacherBody("Tags são associadas aos flashcards e salvas no Firebase com cada cartão.")
             } else {
                 TeacherTagsSection(availableTags, onCreateTag, onRenameTag, onDeleteTag)
+            }
             }
         }
         }
