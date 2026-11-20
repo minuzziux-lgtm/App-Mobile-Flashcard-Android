@@ -35,6 +35,7 @@ fun StudentLearningScreen(
     var selectedLesson by rememberSaveable { mutableStateOf("") }
     var rating by rememberSaveable { mutableStateOf(FeedbackUnderstanding.PARTIAL.name) }
     var comment by rememberSaveable { mutableStateOf("") }
+    var generalComment by rememberSaveable { mutableStateOf("") }
     val classroom = classes.firstOrNull { it.id == selectedClass } ?: classes.firstOrNull()
     val allowedDeckIds = local.decks.filter { deck ->
         deck.assignedClassIds.any { classId -> classes.any { it.id == classId } }
@@ -166,24 +167,24 @@ fun StudentLearningScreen(
         HistoryText("Compartilhe uma sugestão sobre a experiência na turma.")
         Spacer(Modifier.height(12.dp))
         BasicTextField(
-            value = comment, onValueChange = { comment = it.take(1200) },
+            value = generalComment, onValueChange = { generalComment = it.take(1200) },
             textStyle = androidx.compose.ui.text.TextStyle(
                 fontFamily = MyDeckDesign.font, color = MyDeckDesign.ink),
             cursorBrush = SolidColor(MyDeckDesign.ink),
             modifier = Modifier.fillMaxWidth()
                 .background(MyDeckDesign.fieldBackground).padding(16.dp),
             decorationBox = { field ->
-                if (comment.isBlank()) HistoryText("Escreva sua sugestão")
+                if (generalComment.isBlank()) HistoryText("Escreva sua sugestão")
                 field()
             }
         )
         Spacer(Modifier.height(16.dp))
         MyDeckButton("Enviar sugestão geral", MyDeckButtonVariant.LIGHT,
-            onClick = if (comment.isNotBlank()) ({
+            onClick = if (generalComment.isNotBlank()) ({
                 learning.submitFeedback(LessonFeedback(
                     UUID.randomUUID().toString(), classroom.id, "", studentId,
-                    FeedbackUnderstanding.PARTIAL, comment.trim()))
-                comment = ""
+                    FeedbackUnderstanding.PARTIAL, generalComment.trim()))
+                generalComment = ""
             }) else null
         )
         learning.error?.let {
