@@ -55,8 +55,6 @@ internal fun TeacherPerformanceSection(
         showPeriodFilters = !showPeriodFilters
     }
     if (showPeriodFilters) {
-        TeacherLabel("PERÍODO")
-        Spacer(Modifier.height(12.dp))
         TeacherSelectionRow("Todos os anos", selectedYear == null) {
             selectedYear = null
             selectedMonth = null
