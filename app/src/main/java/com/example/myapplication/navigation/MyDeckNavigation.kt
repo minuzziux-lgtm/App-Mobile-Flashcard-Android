@@ -108,14 +108,14 @@ fun MyDeckNavigation() {
         }
         // Rotas de prévia isoladas: nunca leem nem escrevem no Firebase.
         composable("preview-aluno") {
-            androidx.compose.runtime.LaunchedEffect(previewStore) { previewStore.seedDemoScenario() }
+            androidx.compose.runtime.LaunchedEffect(previewStore) { previewStore.ensureDemoScenario() }
             StudentHomeShell(
                 store = previewStore, onLogout = ::exitToEntry,
                 studentId = "@aluno-demo", cloud = null
             )
         }
         composable("preview-professor") {
-            androidx.compose.runtime.LaunchedEffect(previewStore) { previewStore.seedDemoScenario() }
+            androidx.compose.runtime.LaunchedEffect(previewStore) { previewStore.ensureDemoScenario() }
             TeacherHomeShell(
                 store = previewStore, onLogout = ::exitToEntry,
                 cloud = null
