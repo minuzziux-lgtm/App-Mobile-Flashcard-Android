@@ -177,29 +177,43 @@ internal fun TeacherDecksSection(
                             else "Turmas: ${assignedNames.joinToString(", ")}"
                     )
                     Spacer(Modifier.height(7.dp))
-                    TeacherAction(
-                        if (expandedDeckActionsId == deck.id) "Ocultar opções" else "Opções do deck"
-                    ) {
-                        expandedDeckActionsId = if (expandedDeckActionsId == deck.id) null else deck.id
-                    }
-                    if (expandedDeckActionsId == deck.id) {
-                        Column {
-                            TeacherAction("Atribuir a turmas") {
-                                onSelectDeck(deck.id)
-                                editingCardId = null
-                                editingAssignmentsId = deck.id
-                                pendingClassIds = ArrayList(deck.assignedClassIds)
-                            }
-                            TeacherAction("Renomear deck") {
-                                editingDeckId = deck.id
-                                deletingDeckId = null
-                                editedTitle = deck.title
-                            }
-                            if (!cloudMode) {
-                                TeacherAction("Excluir deck") {
-                                    deletingDeckId = deck.id
-                                    editingDeckId = null
+                    androidx.compose.foundation.layout.Box {
+                        TeacherAction("Mais opções  ⋯") { expandedDeckActionsId = deck.id }
+                        androidx.compose.material3.DropdownMenu(
+                            expanded = expandedDeckActionsId == deck.id,
+                            onDismissRequest = { expandedDeckActionsId = null },
+                            containerColor = com.example.myapplication.ui.design.MyDeckDesign.background
+                        ) {
+                            androidx.compose.material3.DropdownMenuItem(
+                                text = { androidx.compose.material3.Text("Atribuir a turmas", color = com.example.myapplication.ui.design.MyDeckDesign.ink) },
+                                onClick = {
+                                    expandedDeckActionsId = null
+                                    onSelectDeck(deck.id)
+                                    editingCardId = null
+                                    editingAssignmentsId = deck.id
+                                    pendingClassIds = ArrayList(deck.assignedClassIds)
                                 }
+                            )
+                            androidx.compose.material3.DropdownMenuItem(
+                                text = { androidx.compose.material3.Text("Renomear", color = com.example.myapplication.ui.design.MyDeckDesign.ink) },
+                                onClick = {
+                                    expandedDeckActionsId = null
+                                    onSelectDeck(deck.id)
+                                    editingDeckId = deck.id
+                                    deletingDeckId = null
+                                    editedTitle = deck.title
+                                }
+                            )
+                            if (!cloudMode) {
+                                androidx.compose.material3.DropdownMenuItem(
+                                    text = { androidx.compose.material3.Text("Excluir deck", color = com.example.myapplication.ui.design.MyDeckDesign.error) },
+                                    onClick = {
+                                        expandedDeckActionsId = null
+                                        onSelectDeck(deck.id)
+                                        deletingDeckId = deck.id
+                                        editingDeckId = null
+                                    }
+                                )
                             }
                         }
                     }
