@@ -208,7 +208,10 @@ fun StudentHomeShell(
                         studentId = studentId,
                         launchStudyRequest = studyLaunchRequest,
                         launchDueOnly = studyDueOnly,
-                        onReturnHome = { navigateTo(StudentTab.HOME) }
+                        onReturnHome = { navigateTo(StudentTab.HOME) },
+                        extraResources = learning.resources.filter { material ->
+                            material.classId in store.enrolledForStudent(studentId)
+                        }
                     )
                 }
                 composable(StudentTab.DATA.route) {
