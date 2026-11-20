@@ -141,8 +141,7 @@ fun StudentLearningScreen(
                 BasicTextField(
                     value = comment, onValueChange = { comment = it.take(1200) },
                     textStyle = androidx.compose.ui.text.TextStyle(
-                        fontFamily = MyDeckDesign.font, color = MyDeckDesign.ink,
-                        fontSize = androidx.compose.ui.unit.TextUnit.Unspecified
+                        fontFamily = MyDeckDesign.font, color = MyDeckDesign.ink
                     ),
                     cursorBrush = SolidColor(MyDeckDesign.ink),
                     modifier = Modifier.fillMaxWidth()
