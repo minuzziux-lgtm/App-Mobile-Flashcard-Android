@@ -110,7 +110,6 @@ fun HomeAluno(
         }
 
         item(key = "revisoes") {
-            ThinEditorialLine()
             Spacer(Modifier.height(23.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -175,7 +174,6 @@ fun HomeAluno(
         }
 
         item(key = "biblioteca") {
-            ThinEditorialLine()
             Spacer(Modifier.height(23.dp))
             EditorialLabel("02  /  BIBLIOTECA")
             Spacer(Modifier.height(39.dp))
@@ -185,7 +183,6 @@ fun HomeAluno(
         }
 
         item(key = "atividade") {
-            ThinEditorialLine()
             Spacer(Modifier.height(23.dp))
             EditorialLabel("03  /  ATIVIDADE")
             Spacer(Modifier.height(37.dp))
@@ -203,18 +200,12 @@ fun HomeAluno(
             Spacer(Modifier.height(19.dp))
             EditorialBody("O histórico e a frequência são calculados a partir das suas revisões locais.")
             Spacer(Modifier.height(45.dp))
-            ThinEditorialLine()
             Spacer(Modifier.height(24.dp))
             EditorialLabel("CONTINUE APRENDENDO")
             Spacer(Modifier.height(15.dp))
             EditorialBody("Entre em uma turma ou abra um deck para começar.")
         }
     }
-}
-
-@Composable
-private fun ThinEditorialLine() {
-    Box(Modifier.fillMaxWidth().height(1.dp).background(editorialDivider))
 }
 
 @Composable
