@@ -106,7 +106,7 @@ fun HomeAluno(
                     ), 13
                 )
             }
-            Spacer(Modifier.height(64.dp))
+            Spacer(Modifier.height(84.dp))
         }
 
         item(key = "revisoes") {
@@ -170,7 +170,7 @@ fun HomeAluno(
                 else "Inicia diretamente a revisão dos seus cartões pendentes.",
                 12
             )
-            Spacer(Modifier.height(88.dp))
+            Spacer(Modifier.height(104.dp))
         }
 
         item(key = "biblioteca") {
@@ -179,7 +179,7 @@ fun HomeAluno(
             Spacer(Modifier.height(39.dp))
             StudentSectionRow("Turmas", "Organize os estudos por turma", onOpenClasses)
             StudentSectionRow("Decks", "Seus conjuntos de flashcards", onOpenDecks)
-            Spacer(Modifier.height(88.dp))
+            Spacer(Modifier.height(104.dp))
         }
 
         item(key = "atividade") {
