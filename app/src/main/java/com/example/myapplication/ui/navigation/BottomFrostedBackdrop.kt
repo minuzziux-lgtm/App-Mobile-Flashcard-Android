@@ -20,15 +20,11 @@ fun BottomFrostedBackdrop(
     modifier: Modifier = Modifier
 ) {
     // Recompute when theme changes: a light fallback caused a white strip in dark mode.
-    val dark = MyDeckDesign.darkMode
     val style = HazeStyle(
         backgroundColor = MyDeckDesign.glassBackdrop,
         blurRadius = 36.dp,
-        tint = HazeTint(
-            if (dark) Color(0xFF111217).copy(alpha = 0.26f)
-            else Color.White.copy(alpha = 0.12f)
-        ),
-        noiseFactor = 0.01f
+        tint = HazeTint(Color.Transparent),
+        noiseFactor = 0f
     )
 
     Box(
