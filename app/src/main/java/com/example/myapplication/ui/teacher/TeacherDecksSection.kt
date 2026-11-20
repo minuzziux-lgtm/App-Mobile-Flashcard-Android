@@ -58,6 +58,7 @@ internal fun TeacherDecksSection(
     var deletingCardId by rememberSaveable { mutableStateOf<String?>(null) }
     var showUnassignedOnly by rememberSaveable { mutableStateOf(false) }
     var showDeckFilters by rememberSaveable { mutableStateOf(false) }
+    var showCreateDeck by rememberSaveable { mutableStateOf(false) }
     var editingAssignmentsId by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingClassIds by rememberSaveable { mutableStateOf(arrayListOf<String>()) }
     var savedAssignmentDeckId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -265,38 +266,14 @@ internal fun TeacherDecksSection(
                 }
             }
             Spacer(Modifier.height(27.dp))
-            TeacherLabel("02  /  NOVO DECK")
-            Spacer(Modifier.height(12.dp))
-            TeacherSelectionRow("Criar sem turma (atribuir depois)", createAsGeneral || selectedClass == null) {
-                createAsGeneral = true
-            }
-            if (selectedClass != null) {
-                TeacherSelectionRow("Criar e atribuir à turma ${selectedClass.name}", !createAsGeneral) {
-                    createAsGeneral = false
-                }
-            }
-            Spacer(Modifier.height(18.dp))
-            TeacherInput("Nome do deck", "Ex.: Frações", title) { title = it }
-            Spacer(Modifier.height(20.dp))
-            MyDeckButton("Criar deck", MyDeckButtonVariant.DARK,
-                onClick = if (title.isNotBlank()) ({
-                    val classId = if (createAsGeneral || selectedClass == null) "" else selectedClass.id
-                    onCreateDeck(classId, title.trim())
-                    showUnassignedOnly = false
-                    title = ""
-                }) else null
-            )
-            Spacer(Modifier.height(45.dp))
-            TeacherDivider()
-            Spacer(Modifier.height(24.dp))
-            TeacherLabel("03  /  DECKS NESTE FILTRO  ·  " + classDecks.size)
+            TeacherLabel("02  /  SELECIONE UM DECK  ·  " + classDecks.size)
             Spacer(Modifier.height(14.dp))
             if (classDecks.isEmpty()) {
                 TeacherEmpty("Nenhum deck neste filtro. Selecione Todos os decks para encontrar e atribuir um deck existente.")
             } else {
                 classDecks.forEach { deck ->
                     Spacer(Modifier.height(22.dp))
-                    TeacherSelectionRow(deck.title, deck.id == selectedDeck?.id) {
+                    TeacherSelectionRow("Ver cartões · " + deck.title, false) {
                         onSelectDeck(deck.id)
                         editingAssignmentsId = null
                         editingCardId = null
@@ -371,6 +348,38 @@ internal fun TeacherDecksSection(
                 Spacer(Modifier.height(42.dp))
                 TeacherDivider()
                 Spacer(Modifier.height(24.dp))
+            }
+            Spacer(Modifier.height(44.dp))
+            TeacherAction(if (showCreateDeck) "Cancelar criação" else "+ Criar novo deck") {
+                showCreateDeck = !showCreateDeck
+            }
+            if (showCreateDeck) {
+                Spacer(Modifier.height(20.dp))
+            TeacherLabel("02  /  NOVO DECK")
+            Spacer(Modifier.height(12.dp))
+            TeacherSelectionRow("Criar sem turma (atribuir depois)", createAsGeneral || selectedClass == null) {
+                createAsGeneral = true
+            }
+            if (selectedClass != null) {
+                TeacherSelectionRow("Criar e atribuir à turma ${selectedClass.name}", !createAsGeneral) {
+                    createAsGeneral = false
+                }
+            }
+            Spacer(Modifier.height(18.dp))
+            TeacherInput("Nome do deck", "Ex.: Frações", title) { title = it }
+            Spacer(Modifier.height(20.dp))
+            MyDeckButton("Criar deck", MyDeckButtonVariant.DARK,
+                onClick = if (title.isNotBlank()) ({
+                    val classId = if (createAsGeneral || selectedClass == null) "" else selectedClass.id
+                    onCreateDeck(classId, title.trim())
+                    showUnassignedOnly = false
+                    title = ""
+                    showCreateDeck = false
+                }) else null
+            )
+            Spacer(Modifier.height(45.dp))
+            TeacherDivider()
+            Spacer(Modifier.height(24.dp))
             }
             Spacer(Modifier.height(42.dp))
             TeacherDivider()
