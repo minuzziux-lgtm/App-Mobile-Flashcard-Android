@@ -47,6 +47,7 @@ internal fun TeacherLearningScreen(
     var materialCardId by rememberSaveable { mutableStateOf("") }
     var materialType by rememberSaveable { mutableStateOf(LearningResourceType.LINK.name) }
     var showCreate by rememberSaveable { mutableStateOf(false) }
+    var editingLesson by rememberSaveable { mutableStateOf(false) }
     val classroom = local.classes.firstOrNull { it.id == selectedClass }
     val decks = local.decks.filter { selectedClass in it.assignedClassIds }
     val lesson = learning.lessons.firstOrNull { it.id == selectedLesson && it.classId == selectedClass }
@@ -85,6 +86,9 @@ internal fun TeacherLearningScreen(
                         if (item.status == LessonStatus.COMPLETED) "Concluída"
                         else "Planejada · ${item.cards.size} cartões em rascunho") {
                         selectedLesson = item.id
+                        editingLesson = false
+                        title = item.title
+                        description = item.description
                         showCreate = false
                     }
                 }
@@ -121,6 +125,28 @@ internal fun TeacherLearningScreen(
                         else "Aula planejada · ${lesson.cards.size} cartões preparados")
                     if (lesson.description.isNotBlank()) TeacherBody(lesson.description)
                     if (lesson.status == LessonStatus.PLANNED) {
+                        Spacer(Modifier.height(16.dp))
+                        TeacherAction(if (editingLesson) "Cancelar edição" else "Editar planejamento") {
+                            editingLesson = !editingLesson
+                            title = lesson.title
+                            description = lesson.description
+                        }
+                        if (editingLesson) {
+                            Spacer(Modifier.height(14.dp))
+                            TeacherInput("Título da aula", "Nome da aula", title) { title = it.take(140) }
+                            Spacer(Modifier.height(12.dp))
+                            TeacherInput("Descrição", "Conteúdo da aula", description) {
+                                description = it.take(500)
+                            }
+                            Spacer(Modifier.height(16.dp))
+                            MyDeckButton("Salvar alterações", MyDeckButtonVariant.DARK,
+                                onClick = if (title.isNotBlank()) ({
+                                    learning.saveLesson(lesson.copy(
+                                        title = title.trim(), description = description.trim()))
+                                    editingLesson = false
+                                }) else null
+                            )
+                        }
                         Spacer(Modifier.height(24.dp))
                         TeacherLabel("PREPARAR FLASHCARDS")
                         Spacer(Modifier.height(10.dp))
