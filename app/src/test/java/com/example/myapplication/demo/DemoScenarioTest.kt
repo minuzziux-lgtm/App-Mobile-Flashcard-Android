@@ -14,6 +14,6 @@ class DemoScenarioTest {
         assertEquals(3, store.enrolledClassIds.size)
         assertTrue(store.reviews.size >= 30)
         assertFalse(store.seedDemoScenario())
-        assertEquals(5, store.cards.size)
+        assertEquals(13, store.cards.size)
     }
 }
