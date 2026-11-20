@@ -72,7 +72,7 @@ internal fun TeacherClassesSection(
         Spacer(Modifier.height(15.dp))
         if (classes.isEmpty()) TeacherEmpty("Nenhuma turma criada ainda.")
         classes.forEach { classroom ->
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(40.dp))
             BasicText(classroom.name, style = teacherStyle(16, FontWeight.Medium, MyDeckDesign.ink))
             Spacer(Modifier.height(7.dp))
             TeacherBody("Código: " + classroom.joinCode)
@@ -191,7 +191,7 @@ internal fun TeacherClassesSection(
                     }
                 }
             }
-            Spacer(Modifier.height(29.dp))
+            Spacer(Modifier.height(42.dp))
         }
     }
 }
