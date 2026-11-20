@@ -286,7 +286,7 @@ private fun TeacherDashboard(
         TeacherTitle("Sua área de\nensino.")
         Spacer(Modifier.height(16.dp))
         TeacherBody("Organize suas turmas, prepare os cartões e acompanhe o aprendizado.")
-        Spacer(Modifier.height(40.dp))
+        Spacer(Modifier.height(58.dp))
         TeacherDivider()
         Spacer(Modifier.height(22.dp))
         TeacherLabel("01  /  VISÃO GERAL")
@@ -296,7 +296,7 @@ private fun TeacherDashboard(
             TeacherMetric("Decks", deckCount, Modifier.weight(1f))
             TeacherMetric("Cartões", cardCount, Modifier.weight(1f))
         }
-        Spacer(Modifier.height(48.dp))
+        Spacer(Modifier.height(64.dp))
         TeacherDivider()
         Spacer(Modifier.height(22.dp))
         TeacherLabel("02  /  COMEÇAR")
