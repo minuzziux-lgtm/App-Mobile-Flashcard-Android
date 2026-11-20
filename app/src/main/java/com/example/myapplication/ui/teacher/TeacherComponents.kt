@@ -70,7 +70,7 @@ internal fun TeacherDivider() {
 @Composable
 internal fun TeacherMetric(label: String, count: Int, modifier: Modifier = Modifier) {
     Column(modifier) {
-        BasicText(count.toString(), style = teacherStyle(36, FontWeight.SemiBold, MyDeckDesign.ink))
+        BasicText(count.toString(), style = teacherStyle(34, FontWeight.Medium, MyDeckDesign.ink))
         Spacer(Modifier.height(8.dp))
         BasicText(label, style = teacherStyle(12, FontWeight.Normal, MyDeckDesign.secondary))
     }
