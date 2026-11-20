@@ -18,7 +18,8 @@ import androidx.compose.ui.unit.sp
 import com.example.myapplication.demo.DemoDeck
 import com.example.myapplication.study.StudyReview
 import com.example.myapplication.ui.design.MyDeckDesign
-import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -27,6 +28,7 @@ import java.util.Locale
 fun StudentHistoryScreen(reviews: List<StudyReview>, decks: List<DemoDeck>) {
     var selectedDeckId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedTag by rememberSaveable { mutableStateOf<String?>(null) }
+    var showFilters by rememberSaveable { mutableStateOf(false) }
     val sorted = reviews.filter { item ->
         (selectedDeckId == null || selectedDeckId == item.deckId) &&
             (selectedTag == null || selectedTag in item.tags)
@@ -36,13 +38,26 @@ fun StudentHistoryScreen(reviews: List<StudyReview>, decks: List<DemoDeck>) {
     val graded = sorted.filter { it.correct != null }
     val correct = graded.count { it.correct == true }
     val accuracy = if (graded.isEmpty()) 0 else correct * 100 / graded.size
-    val date = DateFormat.getDateInstance(DateFormat.SHORT, Locale("pt", "BR"))
+    val date = SimpleDateFormat("EEEE, d 'de' MMMM", Locale("pt", "BR"))
+    val groupedDays = sorted.groupBy { item ->
+        Calendar.getInstance().apply { timeInMillis = item.reviewedAtEpochMillis }.let { calendar ->
+            calendar.set(Calendar.HOUR_OF_DAY, 0)
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+            calendar.timeInMillis
+        }
+    }
     StudentSection(
         title = "Dados.",
         description = "Histórico local de estudos e avaliações. Respostas livres não entram na taxa de acertos."
     ) {
-        HistoryHeader("FILTROS")
-        Spacer(Modifier.height(12.dp))
+        StudentSectionRow(
+            "Filtrar histórico",
+            if (selectedDeckId == null && selectedTag == null) "Todos os assuntos" else "Filtro ativo"
+        ) { showFilters = !showFilters }
+        if (showFilters) {
+
         StudentSectionRow(
             "Todos os decks",
             if (selectedDeckId == null) "Selecionado" else "Mostrar todos",
@@ -70,6 +85,7 @@ fun StudentHistoryScreen(reviews: List<StudyReview>, decks: List<DemoDeck>) {
                 )
             }
         }
+        }
         Spacer(Modifier.height(36.dp))
         HistoryHeader("01 / DESEMPENHO")
         Spacer(Modifier.height(16.dp))
@@ -77,24 +93,35 @@ fun StudentHistoryScreen(reviews: List<StudyReview>, decks: List<DemoDeck>) {
         Spacer(Modifier.height(48.dp))
         StudentActivityHeatmap(sorted)
         Spacer(Modifier.height(56.dp))
-        HistoryHeader("02 / HISTÓRICO")
-        Spacer(Modifier.height(16.dp))
+        HistoryHeader("02 / DIÁRIO DE ESTUDOS")
+        Spacer(Modifier.height(18.dp))
         if (sorted.isEmpty()) {
-            HistoryText("Nenhuma revisão registrada. Estude um deck para começar.")
+            HistoryText("Nenhuma atividade registrada. Comece um estudo para ver seu progresso.")
         } else {
-            sorted.forEach { item ->
+            groupedDays.entries.take(30).forEach { (day, activity) ->
+                val decksStudied = activity.mapNotNull { review ->
+                    decks.firstOrNull { it.id == review.deckId }?.title
+                }.distinct()
+                val gradedToday = activity.filter { it.correct != null }
+                val hits = gradedToday.count { it.correct == true }
+                val topics = decksStudied.take(2).joinToString(" · ")
                 Column {
-                    val title = decks.firstOrNull { it.id == item.deckId }?.title ?: "Deck removido"
-                    HistoryText("$title · ${date.format(Date(item.reviewedAtEpochMillis))}")
-                    Spacer(Modifier.height(5.dp))
-                    HistoryText(
-                        when (item.correct) {
-                            true -> "Acerto registrado"
-                            false -> "Erro registrado"
-                            null -> "Resposta livre — sem nota"
-                        }
+                    BasicText(
+                        date.format(Date(day)).replaceFirstChar { it.uppercase() },
+                        style = TextStyle(
+                            fontFamily = MyDeckDesign.font,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MyDeckDesign.ink
+                        )
                     )
-                    Spacer(Modifier.height(19.dp))
+                    Spacer(Modifier.height(8.dp))
+                    HistoryText("${activity.size} revisões · $hits de ${gradedToday.size} respostas avaliadas")
+                    if (topics.isNotEmpty()) {
+                        Spacer(Modifier.height(4.dp))
+                        HistoryText(topics + if (decksStudied.size > 2) " e mais assuntos" else "")
+                    }
+                    Spacer(Modifier.height(30.dp))
                 }
             }
         }
