@@ -47,6 +47,7 @@ internal fun TeacherClassesSection(
     var expandedParticipantsId by rememberSaveable { mutableStateOf<String?>(null) }
     var participantName by rememberSaveable { mutableStateOf("") }
     var deletingParticipantId by rememberSaveable { mutableStateOf<String?>(null) }
+    var expandedActionsId by rememberSaveable { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
     Column {
@@ -87,27 +88,34 @@ internal fun TeacherClassesSection(
                 Spacer(Modifier.height(5.dp))
                 TeacherBody("Decks: " + attributedDecks.joinToString(", ") { it.title })
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                TeacherAction("Abrir decks") { onOpenClass(classroom.id) }
-                TeacherAction(if (copiedCode == classroom.joinCode) "Copiado" else "Copiar") {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    clipboard.setPrimaryClip(ClipData.newPlainText("Código da turma", classroom.joinCode))
-                    copiedCode = classroom.joinCode
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                TeacherAction("Abrir turma") { onOpenClass(classroom.id) }
+                TeacherAction(if (expandedActionsId == classroom.id) "Menos opções" else "Mais opções") {
+                    expandedActionsId = if (expandedActionsId == classroom.id) null else classroom.id
                 }
-                TeacherAction("Editar") {
-                    editingId = classroom.id
-                    deletingId = null
-                    editedName = classroom.name
-                }
-                if (!cloudMode) {
-                    TeacherAction("Excluir") {
-                        deletingId = classroom.id
-                        editingId = null
+            }
+            if (expandedActionsId == classroom.id) {
+                Column {
+                    TeacherAction(if (copiedCode == classroom.joinCode) "Código copiado" else "Copiar código") {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        clipboard.setPrimaryClip(ClipData.newPlainText("Código da turma", classroom.joinCode))
+                        copiedCode = classroom.joinCode
                     }
-                }
-                TeacherAction("Alunos") {
-                    expandedParticipantsId = if (expandedParticipantsId == classroom.id) null else classroom.id
-                    deletingParticipantId = null
+                    TeacherAction("Editar turma") {
+                        editingId = classroom.id
+                        deletingId = null
+                        editedName = classroom.name
+                    }
+                    TeacherAction("Ver alunos") {
+                        expandedParticipantsId = if (expandedParticipantsId == classroom.id) null else classroom.id
+                        deletingParticipantId = null
+                    }
+                    if (!cloudMode) {
+                        TeacherAction("Excluir turma") {
+                            deletingId = classroom.id
+                            editingId = null
+                        }
+                    }
                 }
             }
             if (editingId == classroom.id) {
