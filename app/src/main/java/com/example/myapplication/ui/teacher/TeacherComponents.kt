@@ -64,7 +64,7 @@ internal fun TeacherTitle(text: String) {
 
 @Composable
 internal fun TeacherDivider() {
-    Box(Modifier.fillMaxWidth().height(1.dp).background(MyDeckDesign.line))
+    // A separacao editorial e feita exclusivamente por espaco em branco.
 }
 
 @Composable
