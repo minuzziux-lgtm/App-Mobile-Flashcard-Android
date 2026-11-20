@@ -150,7 +150,7 @@ fun MyDeckNavigation() {
             }
             TeacherHomeShell(
                 store = store, onLogout = ::exitToEntry, email = repository?.currentEmail(),
-                cloud = cloud
+                cloud = cloud, uid = uid
             )
         }
     }
