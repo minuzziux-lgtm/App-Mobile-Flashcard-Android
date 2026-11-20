@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -143,15 +144,23 @@ fun StudentHomeShell(
                 navController = nav,
                 startDestination = StudentTab.HOME.route,
                 enterTransition = {
-                    if (!motionEnabled) androidx.compose.animation.EnterTransition.None else fadeIn(animationSpec = tween(220, delayMillis = 50)) +
-                        slideInVertically(animationSpec = tween(240, easing = FastOutSlowInEasing), initialOffsetY = { it / 32 })
+                    if (!motionEnabled) androidx.compose.animation.EnterTransition.None
+                    else slideInVertically(animationSpec = tween(320, easing = FastOutSlowInEasing),
+                        initialOffsetY = { it })
                 },
-                exitTransition = { if (!motionEnabled) androidx.compose.animation.ExitTransition.None else fadeOut(animationSpec = tween(100)) },
+                exitTransition = {
+                    if (!motionEnabled) androidx.compose.animation.ExitTransition.None
+                    else fadeOut(animationSpec = tween(140))
+                },
                 popEnterTransition = {
-                    if (!motionEnabled) androidx.compose.animation.EnterTransition.None else fadeIn(animationSpec = tween(190)) +
-                        slideInVertically(animationSpec = tween(210, easing = FastOutSlowInEasing), initialOffsetY = { -it / 40 })
+                    if (!motionEnabled) androidx.compose.animation.EnterTransition.None
+                    else fadeIn(animationSpec = tween(220))
                 },
-                popExitTransition = { if (!motionEnabled) androidx.compose.animation.ExitTransition.None else fadeOut(animationSpec = tween(100)) }
+                popExitTransition = {
+                    if (!motionEnabled) androidx.compose.animation.ExitTransition.None
+                    else slideOutVertically(animationSpec = tween(260, easing = FastOutSlowInEasing),
+                        targetOffsetY = { it })
+                }
             ) {
                 composable(StudentTab.HOME.route) {
                     HomeAluno(
