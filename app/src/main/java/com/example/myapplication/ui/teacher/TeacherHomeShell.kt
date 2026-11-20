@@ -88,7 +88,7 @@ fun TeacherHomeShell(
     val hazeState = remember { HazeState() }
     val listState = rememberLazyListState()
     var showProfile by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(tab, showProfile, showLearning) { listState.scrollToItem(0) }
+    LaunchedEffect(tab, showProfile, showLearning, selectedDeckId) { listState.scrollToItem(0) }
     BackHandler(enabled = showProfile || showLearning) {
         if (showProfile) showProfile = false else showLearning = false
     }
