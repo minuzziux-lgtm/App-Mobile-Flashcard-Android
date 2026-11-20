@@ -35,6 +35,8 @@ internal fun TeacherClassesSection(
     onRemoveParticipant: (String) -> Unit,
     onCreateClass: (String) -> Unit,
     onOpenClass: (String) -> Unit,
+    recentlyCreatedClassId: String? = null,
+    onDismissCreated: () -> Unit = {},
     onRenameClass: (String, String) -> Unit,
     onDeleteClass: (String) -> Unit,
     cloudMode: Boolean = false
@@ -53,6 +55,20 @@ internal fun TeacherClassesSection(
     Column {
         TeacherTitle("Turmas.")
         Spacer(Modifier.height(14.dp))
+        if (recentlyCreatedClassId != null && classes.any { it.id == recentlyCreatedClassId }) {
+            TeacherLabel("TURMA CRIADA")
+            Spacer(Modifier.height(14.dp))
+            TeacherBody("Sua turma está pronta. Você pode adicionar um deck agora ou continuar depois.")
+            Spacer(Modifier.height(18.dp))
+            MyDeckButton("Adicionar um deck", MyDeckButtonVariant.DARK, onClick = {
+                onOpenClass(recentlyCreatedClassId)
+                onDismissCreated()
+            })
+            Spacer(Modifier.height(10.dp))
+            MyDeckButton("Fazer depois", MyDeckButtonVariant.LIGHT,
+                onClick = onDismissCreated)
+            Spacer(Modifier.height(48.dp))
+        }
         TeacherBody("Organize suas turmas e compartilhe os códigos de entrada.")
         Spacer(Modifier.height(38.dp))
         TeacherLabel("01  /  NOVA TURMA")
