@@ -76,8 +76,8 @@ object MyDeckDesign {
     }
     val buttonStyle = TextStyle(
         fontFamily = font,
-        fontSize = 16.sp,
-        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Medium,
         textAlign = TextAlign.Center
     )
 }
