@@ -2,6 +2,9 @@ package com.example.myapplication.learning
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -20,7 +23,7 @@ class LearningFeatureStore(context: Context, private val accountId: String? = nu
     private val prefs = context.applicationContext.getSharedPreferences("mydeck_learning_preview_v1", Context.MODE_PRIVATE)
     private val firebase = if (accountId == null) null else FirebaseApp.initializeApp(context.applicationContext)
     private val db = if (firebase == null) null else FirebaseFirestore.getInstance(firebase)
-    var error: String? = null
+    var error by mutableStateOf<String?>(null)
         private set
     val isCloud: Boolean get() = accountId != null
 
