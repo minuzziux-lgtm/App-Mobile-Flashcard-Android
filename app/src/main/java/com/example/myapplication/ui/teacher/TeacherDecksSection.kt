@@ -56,6 +56,7 @@ internal fun TeacherDecksSection(
     var editingCardId by rememberSaveable { mutableStateOf<String?>(null) }
     var deletingCardId by rememberSaveable { mutableStateOf<String?>(null) }
     var showUnassignedOnly by rememberSaveable { mutableStateOf(false) }
+    var showDeckFilters by rememberSaveable { mutableStateOf(false) }
     var editingAssignmentsId by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingClassIds by rememberSaveable { mutableStateOf(arrayListOf<String>()) }
     var savedAssignmentDeckId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -90,30 +91,44 @@ internal fun TeacherDecksSection(
             Spacer(Modifier.height(12.dp))
             MyDeckButton("Criar turma", MyDeckButtonVariant.LIGHT, onClick = onOpenClasses)
         } else {
-            TeacherLabel("01  /  FILTRAR DECKS")
+            TeacherLabel("01  /  DECKS")
             Spacer(Modifier.height(14.dp))
-            TeacherSelectionRow(
-                "Todos os decks · ${decks.size}",
-                selectedClass == null && !showUnassignedOnly
-            ) {
-                showUnassignedOnly = false
-                editingAssignmentsId = null
-                onSelectClass("")
+            TeacherAction(if (showDeckFilters) "Ocultar filtros" else "Filtrar decks") {
+                showDeckFilters = !showDeckFilters
             }
-            TeacherSelectionRow(
-                "Sem turma · ${decks.count { it.assignedClassIds.isEmpty() }}",
-                selectedClass == null && showUnassignedOnly
-            ) {
-                showUnassignedOnly = true
-                editingAssignmentsId = null
-                onSelectClass("")
-            }
-            classes.forEach { classroom ->
-                val number = decks.count { classroom.id in it.assignedClassIds }
-                TeacherSelectionRow("${classroom.name} · $number decks", classroom.id == selectedClass?.id) {
+            TeacherBody(
+                when {
+                    selectedClass != null -> "Filtro: ${selectedClass.name}"
+                    showUnassignedOnly -> "Filtro: sem turma"
+                    else -> "Exibindo todos os decks"
+                }
+            )
+            if (showDeckFilters) {
+                TeacherLabel("01  /  FILTRAR DECKS")
+                Spacer(Modifier.height(14.dp))
+                TeacherSelectionRow(
+                    "Todos os decks · ${decks.size}",
+                    selectedClass == null && !showUnassignedOnly
+                ) {
                     showUnassignedOnly = false
                     editingAssignmentsId = null
-                    onSelectClass(classroom.id)
+                    onSelectClass("")
+                }
+                TeacherSelectionRow(
+                    "Sem turma · ${decks.count { it.assignedClassIds.isEmpty() }}",
+                    selectedClass == null && showUnassignedOnly
+                ) {
+                    showUnassignedOnly = true
+                    editingAssignmentsId = null
+                    onSelectClass("")
+                }
+                classes.forEach { classroom ->
+                    val number = decks.count { classroom.id in it.assignedClassIds }
+                    TeacherSelectionRow("${classroom.name} · $number decks", classroom.id == selectedClass?.id) {
+                        showUnassignedOnly = false
+                        editingAssignmentsId = null
+                        onSelectClass(classroom.id)
+                    }
                 }
             }
             Spacer(Modifier.height(27.dp))
