@@ -183,7 +183,11 @@ internal fun TeacherLearningScreen(
                 Spacer(Modifier.height(12.dp))
                 TeacherLabel("TIPO")
                 LearningResourceType.entries.forEach { type ->
-                    TeacherSelectionRow(type.name, materialType == type.name) { materialType = type.name }
+                    TeacherSelectionRow(when (type) {
+                        LearningResourceType.PDF -> "Documento PDF"
+                        LearningResourceType.VIDEO -> "Vídeo"
+                        LearningResourceType.LINK -> "Página da web"
+                    }, materialType == type.name) { materialType = type.name }
                 }
                 Spacer(Modifier.height(16.dp))
                 TeacherLabel("ASSOCIAR AO DECK")
@@ -239,7 +243,11 @@ internal fun TeacherLearningScreen(
                 Spacer(Modifier.height(32.dp))
                 items.sortedByDescending { it.createdAt }.forEach { fb ->
                     val label = learning.lessons.firstOrNull { it.id == fb.lessonId }?.title ?: "Feedback geral"
-                    TeacherItemRow(label, fb.understanding.name + if (fb.comment.isBlank()) "" else " · ${fb.comment}")
+                    TeacherItemRow(label, when (fb.understanding) {
+                        FeedbackUnderstanding.CLEAR -> "Entendeu bem"
+                        FeedbackUnderstanding.PARTIAL -> "Entendeu parcialmente"
+                        FeedbackUnderstanding.DIFFICULT -> "Relatou dificuldade"
+                    } + if (fb.comment.isBlank()) "" else " · ${fb.comment}")
                 }
                 if (items.isEmpty()) TeacherBody("Nenhuma avaliação recebida ainda.")
             }
