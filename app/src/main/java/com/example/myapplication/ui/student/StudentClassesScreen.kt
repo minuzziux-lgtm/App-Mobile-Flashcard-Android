@@ -81,8 +81,7 @@ fun StudentClassesScreen(
                         }
                         field()
                     }
-                    Box(Modifier.fillMaxWidth().height(1.dp).background(MyDeckDesign.line))
-                }
+                            }
             }
         )
         Spacer(Modifier.height(20.dp))
@@ -118,7 +117,6 @@ fun StudentClassesScreen(
             )
         }
         Spacer(Modifier.height(48.dp))
-        Box(Modifier.fillMaxWidth().height(1.dp).background(MyDeckDesign.line))
         Spacer(Modifier.height(24.dp))
         BasicText(
             "02  /  MINHAS TURMAS  ·  " + classes.size,
