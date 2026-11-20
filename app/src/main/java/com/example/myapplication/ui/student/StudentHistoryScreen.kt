@@ -20,7 +20,6 @@ import com.example.myapplication.study.StudyReview
 import com.example.myapplication.ui.design.MyDeckDesign
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 /** Histórico do estudante demonstrativo, derivado de eventos gravados no aparelho. */
@@ -38,16 +37,20 @@ fun StudentHistoryScreen(reviews: List<StudyReview>, decks: List<DemoDeck>) {
     val graded = sorted.filter { it.correct != null }
     val correct = graded.count { it.correct == true }
     val accuracy = if (graded.isEmpty()) 0 else correct * 100 / graded.size
-    val date = SimpleDateFormat("EEEE, d 'de' MMMM", Locale("pt", "BR"))
-    val groupedDays = sorted.groupBy { item ->
-        Calendar.getInstance().apply { timeInMillis = item.reviewedAtEpochMillis }.let { calendar ->
-            calendar.set(Calendar.HOUR_OF_DAY, 0)
-            calendar.set(Calendar.MINUTE, 0)
-            calendar.set(Calendar.SECOND, 0)
-            calendar.set(Calendar.MILLISECOND, 0)
-            calendar.timeInMillis
-        }
-    }
+    // Agregação por período: não renderizar centenas de eventos individuais.
+    val activeDays = sorted.map { review ->
+        Calendar.getInstance().apply { timeInMillis = review.reviewedAtEpochMillis }
+            .get(Calendar.YEAR).toString() + "-" +
+            Calendar.getInstance().apply { timeInMillis = review.reviewedAtEpochMillis }
+                .get(Calendar.DAY_OF_YEAR)
+    }.distinct().size
+    val deckSummaries = sorted.groupBy { it.deckId }
+        .map { (deckId, activity) ->
+            val evaluated = activity.filter { it.correct != null }
+            val hits = evaluated.count { it.correct == true }
+            Triple(decks.firstOrNull { it.id == deckId }?.title ?: "Deck", activity.size,
+                if (evaluated.isEmpty()) null else hits * 100 / evaluated.size)
+        }.sortedByDescending { it.second }
     StudentSection(
         title = "Dados.",
         description = "Histórico local de estudos e avaliações. Respostas livres não entram na taxa de acertos."
@@ -93,38 +96,23 @@ fun StudentHistoryScreen(reviews: List<StudyReview>, decks: List<DemoDeck>) {
         Spacer(Modifier.height(48.dp))
         StudentActivityHeatmap(sorted)
         Spacer(Modifier.height(56.dp))
-        HistoryHeader("02 / DIÁRIO DE ESTUDOS")
+        HistoryHeader("02 / RESUMO DOS ESTUDOS")
         Spacer(Modifier.height(18.dp))
-        if (sorted.isEmpty()) {
+        HistoryText("$activeDays dias ativos · ${sorted.size} revisões registradas")
+        Spacer(Modifier.height(24.dp))
+        HistoryHeader("DESEMPENHO POR DECK")
+        Spacer(Modifier.height(12.dp))
+        if (deckSummaries.isEmpty()) {
             HistoryText("Nenhuma atividade registrada. Comece um estudo para ver seu progresso.")
         } else {
-            groupedDays.entries.take(30).forEach { (day, activity) ->
-                val decksStudied = activity.mapNotNull { review ->
-                    decks.firstOrNull { it.id == review.deckId }?.title
-                }.distinct()
-                val gradedToday = activity.filter { it.correct != null }
-                val hits = gradedToday.count { it.correct == true }
-                val topics = decksStudied.take(2).joinToString(" · ")
-                Column {
-                    BasicText(
-                        date.format(Date(day)).replaceFirstChar { it.uppercase() },
-                        style = TextStyle(
-                            fontFamily = MyDeckDesign.font,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MyDeckDesign.ink
-                        )
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    HistoryText("${activity.size} revisões · $hits de ${gradedToday.size} respostas avaliadas")
-                    if (topics.isNotEmpty()) {
-                        Spacer(Modifier.height(4.dp))
-                        HistoryText(topics + if (decksStudied.size > 2) " e mais assuntos" else "")
-                    }
-                    Spacer(Modifier.height(30.dp))
+            deckSummaries.forEach { (title, count, rate) ->
+                StudentSectionRow(title,
+                    "$count revisões · " + (rate?.let { "$it% de acertos" } ?: "sem avaliações")) {
+                    selectedDeckId = decks.firstOrNull { it.title == title }?.id
                 }
             }
         }
+
     }
 }
 
