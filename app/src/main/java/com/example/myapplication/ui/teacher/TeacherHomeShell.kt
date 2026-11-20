@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.teacher
 
+import androidx.activity.compose.BackHandler
 import android.content.pm.ApplicationInfo
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
@@ -75,6 +76,7 @@ fun TeacherHomeShell(
     val activeTab = TeacherTab.entries.firstOrNull { it.name == tab } ?: TeacherTab.HOME
     val hazeState = remember { HazeState() }
     var showProfile by rememberSaveable { mutableStateOf(false) }
+    BackHandler(enabled = showProfile) { showProfile = false }
 
     Box(Modifier.fillMaxSize().background(MyDeckDesign.background)) {
         LazyColumn(
