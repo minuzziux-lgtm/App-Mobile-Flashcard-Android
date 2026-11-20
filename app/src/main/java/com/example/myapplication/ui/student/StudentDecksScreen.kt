@@ -230,7 +230,6 @@ fun StudentDecksScreen(
                 )
             }
             Spacer(Modifier.height(44.dp))
-            Divider()
             Spacer(Modifier.height(24.dp))
             SectionLabel("02  /  DECKS  ·  " + classDecks.size)
             Spacer(Modifier.height(16.dp))
@@ -247,8 +246,7 @@ fun StudentDecksScreen(
                 }
                 if (selectedDeck != null) {
                     Spacer(Modifier.height(43.dp))
-                    Divider()
-                    Spacer(Modifier.height(24.dp))
+                            Spacer(Modifier.height(24.dp))
                     SectionLabel("03  /  CARTÕES DE " + selectedDeck.title.uppercase())
                     Spacer(Modifier.height(16.dp))
                     val visibleCards = cards.filter { it.deckId == selectedDeck.id }
@@ -289,8 +287,7 @@ fun StudentDecksScreen(
                         }
                         Spacer(Modifier.height(24.dp))
                         visibleCards.forEach { card ->
-                            Divider()
-                            Spacer(Modifier.height(19.dp))
+                                            Spacer(Modifier.height(19.dp))
                             SectionLabel(card.type.label.uppercase())
                             Spacer(Modifier.height(10.dp))
                             BasicText(
@@ -360,11 +357,6 @@ private fun SectionLabel(label: String) {
             color = MyDeckDesign.ink
         )
     )
-}
-
-@Composable
-private fun Divider() {
-    Box(Modifier.fillMaxWidth().height(1.dp).background(MyDeckDesign.line))
 }
 
 @Composable
