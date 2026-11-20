@@ -47,6 +47,8 @@ fun HomeAluno(
     reviewCount: Int = 0,
     scrollToReviewsRequest: Int = 0,
     studyCount: Int = 0,
+    recommendationCount: Int = 0,
+    onOpenRecommendations: () -> Unit = {},
     onStartStudy: () -> Unit = {},
     onStartReviews: () -> Unit = {},
     cloudStatus: String? = null,
@@ -105,6 +107,15 @@ fun HomeAluno(
                         "$studyCount flashcards available to study."
                     ), 13
                 )
+            }
+            if (recommendationCount > 0) {
+                Spacer(Modifier.height(24.dp))
+                EditorialLabel("SEU PRÓXIMO PASSO")
+                Spacer(Modifier.height(14.dp))
+                EditorialBody("Há $recommendationCount assuntos que merecem uma revisão.")
+                Spacer(Modifier.height(12.dp))
+                MyDeckButton("Ver sugestões de estudo", MyDeckButtonVariant.LIGHT,
+                    onClick = onOpenRecommendations)
             }
             Spacer(Modifier.height(84.dp))
         }
