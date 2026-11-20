@@ -229,7 +229,7 @@ fun StudentDecksScreen(
                     onClick = { onSelectClass(classroom.id); selectedDeckId = null }
                 )
             }
-            Spacer(Modifier.height(44.dp))
+            Spacer(Modifier.height(60.dp))
             Spacer(Modifier.height(24.dp))
             SectionLabel("02  /  DECKS  ·  " + classDecks.size)
             Spacer(Modifier.height(16.dp))
@@ -245,7 +245,7 @@ fun StudentDecksScreen(
                     )
                 }
                 if (selectedDeck != null) {
-                    Spacer(Modifier.height(43.dp))
+                    Spacer(Modifier.height(60.dp))
                             Spacer(Modifier.height(24.dp))
                     SectionLabel("03  /  CARTÕES DE " + selectedDeck.title.uppercase())
                     Spacer(Modifier.height(16.dp))
@@ -336,7 +336,7 @@ fun StudentDecksScreen(
                                     )
                                 )
                             }
-                            Spacer(Modifier.height(20.dp))
+                            Spacer(Modifier.height(32.dp))
                         }
                         Spacer(Modifier.height(12.dp))
                     }
