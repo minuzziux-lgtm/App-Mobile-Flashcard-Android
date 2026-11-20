@@ -116,7 +116,7 @@ fun MyDeckButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 56.dp)
+            .heightIn(min = 52.dp)
             .background(background, RoundedCornerShape(50))
             .alpha(if (onClick == null) 0.65f else 1f)
             .then(if (onClick == null) Modifier.semantics { disabled() } else Modifier)
@@ -125,7 +125,7 @@ fun MyDeckButton(
     ) {
         BasicText(
             text = content,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             style = MyDeckDesign.buttonStyle.copy(color = foreground)
         )
     }
