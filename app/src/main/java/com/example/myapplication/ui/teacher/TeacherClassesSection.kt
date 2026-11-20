@@ -104,32 +104,50 @@ internal fun TeacherClassesSection(
                 Spacer(Modifier.height(5.dp))
                 TeacherBody("Decks: " + attributedDecks.joinToString(", ") { it.title })
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TeacherAction("Ver decks") { onOpenClass(classroom.id) }
-                TeacherAction(if (expandedActionsId == classroom.id) "Menos opções" else "Mais opções") {
-                    expandedActionsId = if (expandedActionsId == classroom.id) null else classroom.id
-                }
-            }
-            if (expandedActionsId == classroom.id) {
-                Column {
-                    TeacherAction(if (copiedCode == classroom.joinCode) "Código copiado" else "Copiar código") {
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.setPrimaryClip(ClipData.newPlainText("Código da turma", classroom.joinCode))
-                        copiedCode = classroom.joinCode
-                    }
-                    TeacherAction("Editar turma") {
-                        editingId = classroom.id
-                        deletingId = null
-                        editedName = classroom.name
-                    }
-                    TeacherAction("Ver alunos") {
-                        expandedParticipantsId = if (expandedParticipantsId == classroom.id) null else classroom.id
-                        deletingParticipantId = null
-                    }
-                    if (!cloudMode) {
-                        TeacherAction("Excluir turma") {
-                            deletingId = classroom.id
-                            editingId = null
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                TeacherAction("Ver decks · $flashcards cartões") { onOpenClass(classroom.id) }
+                androidx.compose.foundation.layout.Box {
+                    TeacherAction("Mais opções  ⋯") { expandedActionsId = classroom.id }
+                    androidx.compose.material3.DropdownMenu(
+                        expanded = expandedActionsId == classroom.id,
+                        onDismissRequest = { expandedActionsId = null },
+                        containerColor = MyDeckDesign.background
+                    ) {
+                        androidx.compose.material3.DropdownMenuItem(
+                            text = { androidx.compose.material3.Text("Copiar código", color = MyDeckDesign.ink) },
+                            onClick = {
+                                expandedActionsId = null
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                clipboard.setPrimaryClip(ClipData.newPlainText("Código da turma", classroom.joinCode))
+                                copiedCode = classroom.joinCode
+                            }
+                        )
+                        androidx.compose.material3.DropdownMenuItem(
+                            text = { androidx.compose.material3.Text("Editar turma", color = MyDeckDesign.ink) },
+                            onClick = {
+                                expandedActionsId = null
+                                editingId = classroom.id
+                                deletingId = null
+                                editedName = classroom.name
+                            }
+                        )
+                        androidx.compose.material3.DropdownMenuItem(
+                            text = { androidx.compose.material3.Text("Ver alunos", color = MyDeckDesign.ink) },
+                            onClick = {
+                                expandedActionsId = null
+                                expandedParticipantsId = classroom.id
+                                deletingParticipantId = null
+                            }
+                        )
+                        if (!cloudMode) {
+                            androidx.compose.material3.DropdownMenuItem(
+                                text = { androidx.compose.material3.Text("Excluir turma", color = MyDeckDesign.error) },
+                                onClick = {
+                                    expandedActionsId = null
+                                    deletingId = classroom.id
+                                    editingId = null
+                                }
+                            )
                         }
                     }
                 }
