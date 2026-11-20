@@ -89,7 +89,7 @@ internal fun TeacherClassesSection(
                 TeacherBody("Decks: " + attributedDecks.joinToString(", ") { it.title })
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TeacherAction("Abrir turma") { onOpenClass(classroom.id) }
+                TeacherAction("Ver decks") { onOpenClass(classroom.id) }
                 TeacherAction(if (expandedActionsId == classroom.id) "Menos opções" else "Mais opções") {
                     expandedActionsId = if (expandedActionsId == classroom.id) null else classroom.id
                 }
