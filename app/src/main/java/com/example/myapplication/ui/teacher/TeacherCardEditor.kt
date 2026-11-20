@@ -235,7 +235,7 @@ private fun MultiLineInput(label: String, value: String, onChange: (String) -> U
                         }
                         field()
                     }
-                    Box(Modifier.fillMaxWidth().height(1.dp).background(MyDeckDesign.line))
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(MyDeckDesign.inputLine))
                 }
             }
         )
