@@ -1,7 +1,6 @@
 package com.example.myapplication.ui.teacher
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.togetherWith
 import android.content.pm.ApplicationInfo
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
@@ -21,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -86,14 +86,16 @@ fun TeacherHomeShell(
     var tab by rememberSaveable { mutableStateOf(TeacherTab.HOME.name) }
     val activeTab = TeacherTab.entries.firstOrNull { it.name == tab } ?: TeacherTab.HOME
     val hazeState = remember { HazeState() }
-    val motionEnabled = com.example.myapplication.ui.design.myDeckMotionEnabled()
+    val listState = rememberLazyListState()
     var showProfile by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(tab, showProfile, showLearning) { listState.scrollToItem(0) }
     BackHandler(enabled = showProfile || showLearning) {
         if (showProfile) showProfile = false else showLearning = false
     }
 
     Box(Modifier.fillMaxSize().background(MyDeckDesign.background)) {
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize()
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .hazeSource(hazeState),
@@ -116,24 +118,7 @@ fun TeacherHomeShell(
                     )
                     Spacer(Modifier.height(26.dp))
                 }
-                androidx.compose.animation.AnimatedContent(
-                    targetState = Triple(showProfile, activeTab, showLearning),
-                    transitionSpec = {
-                        if (!motionEnabled) {
-                            androidx.compose.animation.EnterTransition.None togetherWith
-                                androidx.compose.animation.ExitTransition.None
-                        } else (androidx.compose.animation.fadeIn(
-                            animationSpec = androidx.compose.animation.core.tween(220, delayMillis = 35)
-                        ) + androidx.compose.animation.slideInVertically(
-                            animationSpec = androidx.compose.animation.core.tween(240),
-                            initialOffsetY = { it / 35 }
-                        )) togetherWith androidx.compose.animation.fadeOut(
-                            animationSpec = androidx.compose.animation.core.tween(100)
-                        )
-                    },
-                    label = "teacher-page"
-                ) { (profileVisible, currentTab, learningVisible) ->
-                if (profileVisible) {
+                if (showProfile) {
                     TeacherTitle("Perfil.")
                     Spacer(Modifier.height(24.dp))
                     TeacherLabel("PROFESSOR")
@@ -150,7 +135,7 @@ fun TeacherHomeShell(
                     MyDeckButton(MyDeckLocale.text("Voltar", "Back"), MyDeckButtonVariant.LIGHT, onClick = { showProfile = false })
                     Spacer(Modifier.height(12.dp))
                     MyDeckButton(MyDeckLocale.text("Sair da conta", "Sign out"), MyDeckButtonVariant.DARK, onClick = onLogout)
-                } else when (currentTab) {
+                } else when (activeTab) {
                     TeacherTab.HOME -> TeacherDashboard(
                         classes.size,
                         decks.size,
@@ -161,7 +146,7 @@ fun TeacherHomeShell(
                         cloudMode = cloud != null
                     )
                     TeacherTab.CLASSES -> {
-                        if (learningVisible) {
+                        if (showLearning) {
                             TeacherLearningScreen(
                                 local = store, learning = learning, cloud = cloud,
                                 onBack = { showLearning = false }
@@ -289,7 +274,6 @@ fun TeacherHomeShell(
                         participants = store.participants,
                         cloudMode = cloud != null
                     )
-                }
                 }
             }
         }
