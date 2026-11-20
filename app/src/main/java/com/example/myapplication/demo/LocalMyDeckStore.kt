@@ -74,6 +74,22 @@ class LocalMyDeckStore(context: Context? = null, namespace: String = "demo") {
                 })
             ))
         }
+        addCard(fractionsDeck.id, DemoCardDraft(
+            DemoCardType.MULTIPLE_CHOICE, "Quanto é 1/2 + 1/4?", "3/4",
+            tags = listOf("frações"), options = listOf("1/4", "3/4", "1"), correctOptionIndex = 1
+        ))
+        addCard(portugueseDeck.id, DemoCardDraft(
+            DemoCardType.CLOZE, "O sujeito deve concordar com o ___.", "verbo",
+            tags = listOf("gramática")
+        ))
+        addCard(readingDeck.id, DemoCardDraft(
+            DemoCardType.REVERSIBLE, "Leitura", "Lectura", tags = listOf("interpretação"),
+            frontLanguage = "Português", backLanguage = "Espanhol"
+        ))
+        addCard(scienceDeck.id, DemoCardDraft(
+            DemoCardType.OPEN_ENDED, "Explique como uma célula se organiza.",
+            tags = listOf("biologia")
+        ))
         joinByCode(grammar.joinCode)
         joinByCode(math.joinCode)
         joinByCode(science.joinCode)
