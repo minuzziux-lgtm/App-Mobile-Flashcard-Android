@@ -41,8 +41,8 @@ object MyDeckDimensions {
     val navigationHeight = 58.dp
     val navigationHorizontalInset = 19.dp
     val navigationBottomInset = 17.dp
-    val sectionGap = 56.dp
-    val contentGap = 24.dp
+    val sectionGap = 64.dp
+    val contentGap = 28.dp
 }
 
 object MyDeckDesign {
