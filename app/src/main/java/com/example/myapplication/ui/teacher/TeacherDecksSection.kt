@@ -74,6 +74,138 @@ internal fun TeacherDecksSection(
     val selectedCards = cards.filter { it.deckId == selectedDeck?.id }
 
     Column {
+        if (selectedDeck != null) {
+            TeacherAction("← Voltar à lista de decks") {
+                onSelectDeck("")
+                editingCardId = null
+                editingAssignmentsId = null
+            }
+            Spacer(Modifier.height(28.dp))
+            TeacherTitle(selectedDeck.title)
+            Spacer(Modifier.height(12.dp))
+            TeacherBody("${selectedCards.size} cartões neste deck")
+            Spacer(Modifier.height(26.dp))
+                TeacherLabel(if (editingCardId == null) "04  /  GERENCIAR DECK" else "04  /  EDITAR CARTÃO")
+                Spacer(Modifier.height(12.dp))
+                if (selectedDeck == null) {
+                    TeacherBody("Selecione um deck na lista acima para definir suas turmas e gerenciar os flashcards.")
+                } else {
+                    TeacherBody("Deck selecionado: ${selectedDeck.title}")
+                    Spacer(Modifier.height(18.dp))
+                    TeacherLabel("TURMAS QUE RECEBEM ESTE DECK")
+                    Spacer(Modifier.height(10.dp))
+                    val assignedNames = classes.filter { it.id in selectedDeck.assignedClassIds }.map { it.name }
+                    TeacherBody(
+                        if (assignedNames.isEmpty()) "Nenhuma turma atribuída. Os alunos não podem ver este deck."
+                        else "Atribuído a: ${assignedNames.joinToString(", ")}"
+                    )
+                    Spacer(Modifier.height(11.dp))
+                    TeacherBody("Os mesmos flashcards serão disponibilizados em todas as turmas escolhidas.")
+                    AnimatedVisibility(
+                        visible = savedAssignmentDeckId == selectedDeck.id && savedAssignmentMessage != null,
+                        enter = fadeIn(animationSpec = tween(160)),
+                        exit = fadeOut(animationSpec = tween(110))
+                    ) {
+                        Column {
+                            Spacer(Modifier.height(12.dp))
+                            TeacherBody(savedAssignmentMessage.orEmpty())
+                        }
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    if (classes.isEmpty()) {
+                        MyDeckButton("Criar turma para atribuir deck", MyDeckButtonVariant.LIGHT, onClick = onOpenClasses)
+                    } else if (editingAssignmentsId == selectedDeck.id) {
+                        TeacherBody("Selecione as turmas desejadas e confirme para salvar.")
+                        Spacer(Modifier.height(12.dp))
+                        classes.forEach { classroom ->
+                            val chosen = classroom.id in pendingClassIds
+                            TeacherSelectionRow(
+                                "${classroom.name} · ${if (chosen) "Selecionada" else "Não selecionada"}",
+                                chosen,
+                                multiSelect = true
+                            ) {
+                                pendingClassIds = ArrayList(
+                                    if (chosen) pendingClassIds.filterNot { it == classroom.id }
+                                    else pendingClassIds + classroom.id
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        if (pendingClassIds.isEmpty()) {
+                            TeacherBody("Sem turmas selecionadas: o deck ficará oculto para os alunos.")
+                            Spacer(Modifier.height(12.dp))
+                        }
+                        MyDeckButton("Salvar atribuições", MyDeckButtonVariant.DARK, onClick = {
+                            showUnassignedOnly = false
+                            val selectedIds = pendingClassIds.toList()
+                            onAssignDeck(selectedDeck.id, selectedIds)
+                            savedAssignmentDeckId = selectedDeck.id
+                            savedAssignmentMessage = if (selectedIds.isEmpty()) {
+                                "Atribuições salvas. Este deck não está disponível para alunos."
+                            } else {
+                                "Atribuições salvas em ${selectedIds.size} turmas."
+                            }
+                            editingAssignmentsId = null
+                        })
+                        Spacer(Modifier.height(8.dp))
+                        MyDeckButton("Cancelar", MyDeckButtonVariant.LIGHT, onClick = {
+                            editingAssignmentsId = null
+                        })
+                    } else {
+                        MyDeckButton("Alterar turmas", MyDeckButtonVariant.LIGHT, onClick = {
+                            editingAssignmentsId = selectedDeck.id
+                            pendingClassIds = ArrayList(selectedDeck.assignedClassIds)
+                        })
+                    }
+                    Spacer(Modifier.height(30.dp))
+                    TeacherDivider()
+                    Spacer(Modifier.height(20.dp))
+                    TeacherLabel(if (editingCardId == null) "ADICIONAR FLASHCARD" else "EDITAR FLASHCARD")
+                    Spacer(Modifier.height(14.dp))
+                    if (editingCardId != null) {
+                        TeacherAction("Cancelar edição") { editingCardId = null }
+                    }
+                    val existing = selectedCards.firstOrNull { it.id == editingCardId }
+                    androidx.compose.runtime.key(selectedDeck.id, existing?.id) {
+                        TeacherCardEditor(initialCard = existing, availableTags = availableTags) { draft ->
+                            if (existing == null) onAddCard(selectedDeck.id, draft)
+                            else {
+                                onUpdateCard(existing.id, draft)
+                                editingCardId = null
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(43.dp))
+                    TeacherLabel("05  /  FLASHCARDS DESTE DECK  ·  " + selectedCards.size)
+                    Spacer(Modifier.height(12.dp))
+                    if (selectedCards.isEmpty()) {
+                        TeacherEmpty("Este deck ainda não possui flashcards. Adicione um para permitir o estudo.")
+                    } else {
+                        selectedCards.forEach { card ->
+                            TeacherItemRow(card.question, card.type.label)
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                                TeacherAction("Editar") {
+                                    editingCardId = card.id
+                                    deletingCardId = null
+                                }
+                                TeacherAction("Duplicar") { onDuplicateCard(card.id) }
+                                TeacherAction("Excluir") {
+                                    deletingCardId = card.id
+                                    editingCardId = null
+                                }
+                            }
+                            if (deletingCardId == card.id) {
+                                TeacherConfirmDelete(
+                                    "Excluir este cartão do deck? A ação é irreversível.",
+                                    onConfirm = { onDeleteCard(card.id); deletingCardId = null },
+                                    onCancel = { deletingCardId = null }
+                                )
+                            }
+                            Spacer(Modifier.height(12.dp))
+                        }
+                    }
+                }
+        } else {
         TeacherTitle("Decks.")
         Spacer(Modifier.height(14.dp))
         TeacherBody("Cada deck guarda seus próprios flashcards e pode ser atribuído a uma ou várias turmas.")
@@ -198,7 +330,6 @@ internal fun TeacherDecksSection(
                                 text = { androidx.compose.material3.Text("Renomear", color = com.example.myapplication.ui.design.MyDeckDesign.ink) },
                                 onClick = {
                                     expandedDeckActionsId = null
-                                    onSelectDeck(deck.id)
                                     editingDeckId = deck.id
                                     deletingDeckId = null
                                     editedTitle = deck.title
@@ -209,7 +340,6 @@ internal fun TeacherDecksSection(
                                     text = { androidx.compose.material3.Text("Excluir deck", color = com.example.myapplication.ui.design.MyDeckDesign.error) },
                                     onClick = {
                                         expandedDeckActionsId = null
-                                        onSelectDeck(deck.id)
                                         deletingDeckId = deck.id
                                         editingDeckId = null
                                     }
@@ -241,126 +371,6 @@ internal fun TeacherDecksSection(
                 Spacer(Modifier.height(42.dp))
                 TeacherDivider()
                 Spacer(Modifier.height(24.dp))
-                TeacherLabel(if (editingCardId == null) "04  /  GERENCIAR DECK" else "04  /  EDITAR CARTÃO")
-                Spacer(Modifier.height(12.dp))
-                if (selectedDeck == null) {
-                    TeacherBody("Selecione um deck na lista acima para definir suas turmas e gerenciar os flashcards.")
-                } else {
-                    TeacherBody("Deck selecionado: ${selectedDeck.title}")
-                    Spacer(Modifier.height(18.dp))
-                    TeacherLabel("TURMAS QUE RECEBEM ESTE DECK")
-                    Spacer(Modifier.height(10.dp))
-                    val assignedNames = classes.filter { it.id in selectedDeck.assignedClassIds }.map { it.name }
-                    TeacherBody(
-                        if (assignedNames.isEmpty()) "Nenhuma turma atribuída. Os alunos não podem ver este deck."
-                        else "Atribuído a: ${assignedNames.joinToString(", ")}"
-                    )
-                    Spacer(Modifier.height(11.dp))
-                    TeacherBody("Os mesmos flashcards serão disponibilizados em todas as turmas escolhidas.")
-                    AnimatedVisibility(
-                        visible = savedAssignmentDeckId == selectedDeck.id && savedAssignmentMessage != null,
-                        enter = fadeIn(animationSpec = tween(160)),
-                        exit = fadeOut(animationSpec = tween(110))
-                    ) {
-                        Column {
-                            Spacer(Modifier.height(12.dp))
-                            TeacherBody(savedAssignmentMessage.orEmpty())
-                        }
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    if (classes.isEmpty()) {
-                        MyDeckButton("Criar turma para atribuir deck", MyDeckButtonVariant.LIGHT, onClick = onOpenClasses)
-                    } else if (editingAssignmentsId == selectedDeck.id) {
-                        TeacherBody("Selecione as turmas desejadas e confirme para salvar.")
-                        Spacer(Modifier.height(12.dp))
-                        classes.forEach { classroom ->
-                            val chosen = classroom.id in pendingClassIds
-                            TeacherSelectionRow(
-                                "${classroom.name} · ${if (chosen) "Selecionada" else "Não selecionada"}",
-                                chosen,
-                                multiSelect = true
-                            ) {
-                                pendingClassIds = ArrayList(
-                                    if (chosen) pendingClassIds.filterNot { it == classroom.id }
-                                    else pendingClassIds + classroom.id
-                                )
-                            }
-                        }
-                        Spacer(Modifier.height(12.dp))
-                        if (pendingClassIds.isEmpty()) {
-                            TeacherBody("Sem turmas selecionadas: o deck ficará oculto para os alunos.")
-                            Spacer(Modifier.height(12.dp))
-                        }
-                        MyDeckButton("Salvar atribuições", MyDeckButtonVariant.DARK, onClick = {
-                            showUnassignedOnly = false
-                            val selectedIds = pendingClassIds.toList()
-                            onAssignDeck(selectedDeck.id, selectedIds)
-                            savedAssignmentDeckId = selectedDeck.id
-                            savedAssignmentMessage = if (selectedIds.isEmpty()) {
-                                "Atribuições salvas. Este deck não está disponível para alunos."
-                            } else {
-                                "Atribuições salvas em ${selectedIds.size} turmas."
-                            }
-                            editingAssignmentsId = null
-                        })
-                        Spacer(Modifier.height(8.dp))
-                        MyDeckButton("Cancelar", MyDeckButtonVariant.LIGHT, onClick = {
-                            editingAssignmentsId = null
-                        })
-                    } else {
-                        MyDeckButton("Alterar turmas", MyDeckButtonVariant.LIGHT, onClick = {
-                            editingAssignmentsId = selectedDeck.id
-                            pendingClassIds = ArrayList(selectedDeck.assignedClassIds)
-                        })
-                    }
-                    Spacer(Modifier.height(30.dp))
-                    TeacherDivider()
-                    Spacer(Modifier.height(20.dp))
-                    TeacherLabel(if (editingCardId == null) "ADICIONAR FLASHCARD" else "EDITAR FLASHCARD")
-                    Spacer(Modifier.height(14.dp))
-                    if (editingCardId != null) {
-                        TeacherAction("Cancelar edição") { editingCardId = null }
-                    }
-                    val existing = selectedCards.firstOrNull { it.id == editingCardId }
-                    androidx.compose.runtime.key(selectedDeck.id, existing?.id) {
-                        TeacherCardEditor(initialCard = existing, availableTags = availableTags) { draft ->
-                            if (existing == null) onAddCard(selectedDeck.id, draft)
-                            else {
-                                onUpdateCard(existing.id, draft)
-                                editingCardId = null
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(43.dp))
-                    TeacherLabel("05  /  FLASHCARDS DESTE DECK  ·  " + selectedCards.size)
-                    Spacer(Modifier.height(12.dp))
-                    if (selectedCards.isEmpty()) {
-                        TeacherEmpty("Este deck ainda não possui flashcards. Adicione um para permitir o estudo.")
-                    } else {
-                        selectedCards.forEach { card ->
-                            TeacherItemRow(card.question, card.type.label)
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                                TeacherAction("Editar") {
-                                    editingCardId = card.id
-                                    deletingCardId = null
-                                }
-                                TeacherAction("Duplicar") { onDuplicateCard(card.id) }
-                                TeacherAction("Excluir") {
-                                    deletingCardId = card.id
-                                    editingCardId = null
-                                }
-                            }
-                            if (deletingCardId == card.id) {
-                                TeacherConfirmDelete(
-                                    "Excluir este cartão do deck? A ação é irreversível.",
-                                    onConfirm = { onDeleteCard(card.id); deletingCardId = null },
-                                    onCancel = { deletingCardId = null }
-                                )
-                            }
-                            Spacer(Modifier.height(12.dp))
-                        }
-                    }
-                }
             }
             Spacer(Modifier.height(42.dp))
             TeacherDivider()
@@ -370,6 +380,7 @@ internal fun TeacherDecksSection(
             } else {
                 TeacherTagsSection(availableTags, onCreateTag, onRenameTag, onDeleteTag)
             }
+        }
         }
     }
 }
