@@ -52,6 +52,7 @@ import com.example.myapplication.ui.navigation.MyDeckTopBar
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import com.example.myapplication.demo.LocalMyDeckStore
+import com.example.myapplication.learning.LearningFeatureStore
 
 private enum class TeacherTab(private val pt: String, private val en: String) {
     HOME("Início", "Home"), CLASSES("Turmas", "Classes"),
@@ -64,11 +65,18 @@ fun TeacherHomeShell(
     store: LocalMyDeckStore,
     onLogout: () -> Unit = {},
     email: String? = null,
-    cloud: CloudMyDeckState? = null
+    cloud: CloudMyDeckState? = null,
+    uid: String? = null
 ) {
     LaunchedEffect(cloud) { cloud?.refresh() }
     val classes = store.classes
     var selectedClassId by rememberSaveable { mutableStateOf<String?>(null) }
+    var showLearning by rememberSaveable { mutableStateOf(false) }
+    val featureContext = LocalContext.current
+    val learning = remember(featureContext, uid) { LearningFeatureStore(featureContext, uid) }
+    LaunchedEffect(classes.map { it.id }, uid) {
+        learning.refresh(classes.map { it.id }, teacher = true)
+    }
     val decks = store.decks
     val cards = store.cards
     var selectedDeckId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -76,7 +84,9 @@ fun TeacherHomeShell(
     val activeTab = TeacherTab.entries.firstOrNull { it.name == tab } ?: TeacherTab.HOME
     val hazeState = remember { HazeState() }
     var showProfile by rememberSaveable { mutableStateOf(false) }
-    BackHandler(enabled = showProfile) { showProfile = false }
+    BackHandler(enabled = showProfile || showLearning) {
+        if (showProfile) showProfile = false else showLearning = false
+    }
 
     Box(Modifier.fillMaxSize().background(MyDeckDesign.background)) {
         LazyColumn(
@@ -130,7 +140,16 @@ fun TeacherHomeShell(
                         cloudMode = cloud != null
                     )
                     TeacherTab.CLASSES -> {
-                        TeacherClassesSection(
+                        if (showLearning) {
+                            TeacherLearningScreen(
+                                local = store, learning = learning, cloud = cloud,
+                                onBack = { showLearning = false }
+                            )
+                        } else {
+                            Column {
+                                TeacherAction("Aulas, materiais e feedback") { showLearning = true }
+                                Spacer(Modifier.height(28.dp))
+                                TeacherClassesSection(
                             classes = classes,
                             decks = decks,
                             cards = cards,
@@ -171,7 +190,9 @@ fun TeacherHomeShell(
                                 }
                             },
                             cloudMode = cloud != null
-                        )
+                                )
+                            }
+                        }
                     }
                     TeacherTab.DECKS -> {
                         TeacherDecksSection(
