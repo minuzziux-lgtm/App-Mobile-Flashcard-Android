@@ -109,12 +109,6 @@ fun TeacherHomeShell(
                     Spacer(Modifier.height(28.dp))
                     val uiContext = LocalContext.current
                     MyDeckButton(
-                        MyDeckLocale.text("Idioma: Português", "Language: English"),
-                        MyDeckButtonVariant.LIGHT,
-                        onClick = { MyDeckLocale.toggle(uiContext) }
-                    )
-                    androidx.compose.foundation.layout.Spacer(Modifier.padding(vertical = 6.dp))
-                    MyDeckButton(
                         if (MyDeckDesign.darkMode) "Usar tema claro" else "Usar tema escuro",
                         MyDeckButtonVariant.LIGHT,
                         onClick = { MyDeckDesign.toggleTheme(uiContext) }
