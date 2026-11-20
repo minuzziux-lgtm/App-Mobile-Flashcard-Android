@@ -39,7 +39,8 @@ class LearningFeatureStore(context: Context, private val accountId: String? = nu
         resources.removeAll { it.classId !in allowed }
         feedbacks.removeAll { it.classId !in allowed }
         classIds.forEach { classId ->
-            lessonsRef(classId).get().addOnSuccessListener { result ->
+            val lessonQuery = if (teacher) lessonsRef(classId) else lessonsRef(classId).whereEqualTo("status", "COMPLETED")
+            lessonQuery.get().addOnSuccessListener { result ->
                 lessons.removeAll { it.classId == classId }
                 lessons.addAll(result.documents.mapNotNull { doc ->
                     runCatching {
