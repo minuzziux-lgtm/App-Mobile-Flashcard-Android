@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.teacher
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.togetherWith
 import android.content.pm.ApplicationInfo
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
@@ -113,7 +114,21 @@ fun TeacherHomeShell(
                     )
                     Spacer(Modifier.height(26.dp))
                 }
-                if (showProfile) {
+                androidx.compose.animation.AnimatedContent(
+                    targetState = Triple(showProfile, activeTab, showLearning),
+                    transitionSpec = {
+                        (androidx.compose.animation.fadeIn(
+                            animationSpec = androidx.compose.animation.core.tween(220, delayMillis = 35)
+                        ) + androidx.compose.animation.slideInVertically(
+                            animationSpec = androidx.compose.animation.core.tween(240),
+                            initialOffsetY = { it / 35 }
+                        )) togetherWith androidx.compose.animation.fadeOut(
+                            animationSpec = androidx.compose.animation.core.tween(100)
+                        )
+                    },
+                    label = "teacher-page"
+                ) { (profileVisible, currentTab, learningVisible) ->
+                if (profileVisible) {
                     TeacherTitle("Perfil.")
                     Spacer(Modifier.height(24.dp))
                     TeacherLabel("PROFESSOR")
@@ -130,7 +145,7 @@ fun TeacherHomeShell(
                     MyDeckButton(MyDeckLocale.text("Voltar", "Back"), MyDeckButtonVariant.LIGHT, onClick = { showProfile = false })
                     Spacer(Modifier.height(12.dp))
                     MyDeckButton(MyDeckLocale.text("Sair da conta", "Sign out"), MyDeckButtonVariant.DARK, onClick = onLogout)
-                } else when (activeTab) {
+                } else when (currentTab) {
                     TeacherTab.HOME -> TeacherDashboard(
                         classes.size,
                         decks.size,
@@ -141,7 +156,7 @@ fun TeacherHomeShell(
                         cloudMode = cloud != null
                     )
                     TeacherTab.CLASSES -> {
-                        if (showLearning) {
+                        if (learningVisible) {
                             TeacherLearningScreen(
                                 local = store, learning = learning, cloud = cloud,
                                 onBack = { showLearning = false }
@@ -269,6 +284,7 @@ fun TeacherHomeShell(
                         participants = store.participants,
                         cloudMode = cloud != null
                     )
+                }
                 }
             }
         }
