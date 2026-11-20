@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -113,13 +114,15 @@ internal fun TeacherSelectionRow(
     Box(
         Modifier.fillMaxWidth()
             .padding(bottom = 12.dp)
-            .border(1.dp, if (isSelected) MyDeckDesign.ink else MyDeckDesign.line, CircleShape)
+            .border(1.25.dp, if (isSelected) MyDeckDesign.ink else MyDeckDesign.chipStroke, CircleShape)
             .then(selection)
             .padding(horizontal = 19.dp, vertical = 18.dp)
     ) {
         BasicText(
             title,
             style = teacherStyle(14, if (isSelected) FontWeight.SemiBold else FontWeight.Normal, MyDeckDesign.ink)
+                .copy(textAlign = TextAlign.Center),
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
