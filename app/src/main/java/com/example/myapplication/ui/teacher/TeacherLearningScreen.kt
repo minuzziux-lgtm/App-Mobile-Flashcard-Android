@@ -54,6 +54,9 @@ internal fun TeacherLearningScreen(
 
     Column {
         TeacherAction("← Voltar para turmas", onBack)
+        if (learning.isCloud) TeacherAction("Atualizar aulas e feedback") {
+            learning.refresh(local.classes.map { it.id }, teacher = true)
+        }
         Spacer(Modifier.height(30.dp))
         TeacherTitle("Aulas e\nconteúdos.")
         Spacer(Modifier.height(12.dp))
