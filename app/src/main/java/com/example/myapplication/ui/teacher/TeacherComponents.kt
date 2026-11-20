@@ -57,8 +57,8 @@ internal fun TeacherBody(text: String) {
 internal fun TeacherTitle(text: String) {
     BasicText(
         text,
-        style = teacherStyle(39, FontWeight.SemiBold, MyDeckDesign.ink)
-            .copy(lineHeight = 46.sp, letterSpacing = (-1.4).sp)
+        style = teacherStyle(38, FontWeight.Medium, MyDeckDesign.ink)
+            .copy(lineHeight = 46.sp, letterSpacing = (-1.2).sp)
     )
 }
 
