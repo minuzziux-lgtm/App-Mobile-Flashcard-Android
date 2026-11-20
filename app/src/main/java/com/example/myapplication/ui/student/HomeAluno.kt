@@ -4,7 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,7 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,7 +56,6 @@ fun HomeAluno(
     onRefresh: (() -> Unit)? = null
 ) {
     val listState = rememberLazyListState()
-    val visibleDots = com.example.myapplication.study.reviewIndicator(reviewCount).filledDots
 
     LaunchedEffect(scrollToReviewsRequest) {
         if (scrollToReviewsRequest > 0) listState.animateScrollToItem(1)
@@ -117,7 +117,7 @@ fun HomeAluno(
                 MyDeckButton("Ver sugestões de estudo", MyDeckButtonVariant.LIGHT,
                     onClick = onOpenRecommendations)
             }
-            Spacer(Modifier.height(84.dp))
+            Spacer(Modifier.height(56.dp))
         }
 
         item(key = "revisoes") {
@@ -129,7 +129,7 @@ fun HomeAluno(
                 EditorialLabel("01  /  REVISÕES")
                 EditorialLabel("DISPONÍVEIS")
             }
-            Spacer(Modifier.height(37.dp))
+            Spacer(Modifier.height(24.dp))
             Row(
                 horizontalArrangement = Arrangement.spacedBy(13.dp),
                 verticalAlignment = Alignment.Bottom
@@ -151,24 +151,24 @@ fun HomeAluno(
             }
             Spacer(Modifier.height(26.dp))
 
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                maxItemsInEachRow = 20,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(13.dp)
+            // Indicador compacto: não limita visualmente o número de pendências.
+            Box(
+                modifier = Modifier.fillMaxWidth().height(6.dp)
+                    .background(editorialDivider, RoundedCornerShape(50))
             ) {
-                repeat(40) { index ->
-                    Box(
-                        modifier = Modifier
-                            .size(7.dp)
-                            .background(
-                                if (index < visibleDots) MyDeckDesign.ink else editorialDivider,
-                                CircleShape
-                            )
-                    )
-                }
+                Box(
+                    modifier = Modifier.fillMaxWidth(
+                        (reviewCount.coerceAtLeast(0).coerceAtMost(40) / 40f)
+                    ).fillMaxHeight()
+                        .background(MyDeckDesign.ink, RoundedCornerShape(50))
+                )
             }
-            Spacer(Modifier.height(34.dp))
+            Spacer(Modifier.height(12.dp))
+            EditorialBody(
+                if (reviewCount > 40) "$reviewCount cartões pendentes · acima da referência de 40"
+                else "$reviewCount de 40 cartões na referência visual", 12
+            )
+            Spacer(Modifier.height(24.dp))
             MyDeckButton(
                 label = MyDeckLocale.text("Começar revisão", "Start reviewing"),
                 variant = MyDeckButtonVariant.DARK,
@@ -177,17 +177,17 @@ fun HomeAluno(
             Spacer(Modifier.height(13.dp))
             EditorialBody(
                 if (reviewCount == 0) "Nenhuma revisão pendente. Crie ou entre em uma turma e estude um deck."
-                else if (reviewCount > 40) "$reviewCount revisões pendentes; o indicador mostra até 40 pontos."
+                else if (reviewCount > 40) "Comece pelas revisões pendentes."
                 else "Inicia diretamente a revisão dos seus cartões pendentes.",
                 12
             )
-            Spacer(Modifier.height(104.dp))
+            Spacer(Modifier.height(56.dp))
         }
 
         item(key = "biblioteca") {
             Spacer(Modifier.height(23.dp))
             EditorialLabel("02  /  BIBLIOTECA")
-            Spacer(Modifier.height(39.dp))
+            Spacer(Modifier.height(20.dp))
             StudentSectionRow("Turmas", "Organize os estudos por turma", onOpenClasses)
             StudentSectionRow("Decks", "Seus conjuntos de flashcards", onOpenDecks)
             Spacer(Modifier.height(104.dp))
