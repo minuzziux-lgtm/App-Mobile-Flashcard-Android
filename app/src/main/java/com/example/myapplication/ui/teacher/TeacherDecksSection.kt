@@ -52,6 +52,7 @@ internal fun TeacherDecksSection(
     var createAsGeneral by rememberSaveable { mutableStateOf(false) }
     var editingDeckId by rememberSaveable { mutableStateOf<String?>(null) }
     var expandedDeckActionsId by rememberSaveable { mutableStateOf<String?>(null) }
+    var cardMenuId by rememberSaveable { mutableStateOf<String?>(null) }
     var deletingDeckId by rememberSaveable { mutableStateOf<String?>(null) }
     var editedTitle by rememberSaveable { mutableStateOf("") }
     var editingCardId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -94,15 +95,33 @@ internal fun TeacherDecksSection(
                     } else {
                         selectedCards.forEach { card ->
                             TeacherItemRow(card.question, card.type.label)
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                                TeacherAction("Editar") {
-                                    editingCardId = card.id
-                                    deletingCardId = null
-                                }
-                                TeacherAction("Duplicar") { onDuplicateCard(card.id) }
-                                TeacherAction("Excluir") {
-                                    deletingCardId = card.id
-                                    editingCardId = null
+                            androidx.compose.foundation.layout.Box {
+                                TeacherAction("Opções do cartão  ⋯") { cardMenuId = card.id }
+                                androidx.compose.material3.DropdownMenu(
+                                    expanded = cardMenuId == card.id,
+                                    onDismissRequest = { cardMenuId = null },
+                                    containerColor = com.example.myapplication.ui.design.MyDeckDesign.background
+                                ) {
+                                    androidx.compose.material3.DropdownMenuItem(
+                                        text = { androidx.compose.material3.Text("Editar cartão", color = com.example.myapplication.ui.design.MyDeckDesign.ink) },
+                                        onClick = {
+                                            cardMenuId = null
+                                            editingCardId = card.id
+                                            deletingCardId = null
+                                        }
+                                    )
+                                    androidx.compose.material3.DropdownMenuItem(
+                                        text = { androidx.compose.material3.Text("Duplicar cartão", color = com.example.myapplication.ui.design.MyDeckDesign.ink) },
+                                        onClick = { cardMenuId = null; onDuplicateCard(card.id) }
+                                    )
+                                    androidx.compose.material3.DropdownMenuItem(
+                                        text = { androidx.compose.material3.Text("Excluir cartão", color = com.example.myapplication.ui.design.MyDeckDesign.error) },
+                                        onClick = {
+                                            cardMenuId = null
+                                            deletingCardId = card.id
+                                            editingCardId = null
+                                        }
+                                    )
                                 }
                             }
                             if (deletingCardId == card.id) {
