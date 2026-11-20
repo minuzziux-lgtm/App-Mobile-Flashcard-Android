@@ -1,6 +1,7 @@
 package com.example.myapplication.learning
 
 import android.content.Context
+import com.example.myapplication.demo.LocalMyDeckStore
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
@@ -29,6 +30,64 @@ class LearningFeatureStore(context: Context, private val accountId: String? = nu
 
     init {
         if (!isCloud) restore()
+    }
+
+    /** Dados ilustrativos criados apenas nas prévias locais, uma única vez. */
+    fun seedDemoContent(local: LocalMyDeckStore) {
+        if (isCloud || prefs.getBoolean("sample_initialized", false)) return
+        if (lessons.isNotEmpty() || resources.isNotEmpty() || feedbacks.isNotEmpty()) return
+        val portuguese = local.classes.firstOrNull { it.name.contains("Portugues", ignoreCase = true) ||
+            it.name.contains("Portug", ignoreCase = true) } ?: return
+        val mathematics = local.classes.firstOrNull { it.name.contains("Matemática") }
+        val grammar = local.decks.firstOrNull { it.title.contains("Gramática") }
+        val fractions = local.decks.firstOrNull { it.title.contains("Frações") }
+        val completed = MyDeckLesson(
+            id = "demo-aula-gramatica", classId = portuguese.id,
+            title = "Aula 01 — Concordância verbal",
+            description = "Sujeito, verbo e concordância em frases do cotidiano.",
+            deckId = grammar?.id.orEmpty(),
+            status = LessonStatus.COMPLETED,
+            completedAt = System.currentTimeMillis() - 2 * 86_400_000L
+        )
+        lessons.add(completed)
+        lessons.add(MyDeckLesson(
+            id = "demo-aula-interpretacao", classId = portuguese.id,
+            title = "Aula 02 — Interpretação de texto",
+            description = "Leitura de um texto curto e discussão de ideias principais.",
+            status = LessonStatus.COMPLETED,
+            completedAt = System.currentTimeMillis() - 86_400_000L
+        ))
+        if (mathematics != null) {
+            lessons.add(MyDeckLesson(
+                id = "demo-aula-fracoes", classId = mathematics.id,
+                title = "Aula 03 — Operações com frações",
+                description = "Planejamento para a próxima aula.",
+                deckId = fractions?.id.orEmpty(),
+                cards = listOf(
+                    LessonDraftCard("demo-rascunho", fractions?.id.orEmpty(),
+                        "Quanto é 1/2 + 1/2?", "1")
+                )
+            ))
+        }
+        resources.add(LearningResource(
+            id = "demo-material-gramatica", title = "Concordância verbal — leitura",
+            url = "https://pt.wikipedia.org/wiki/Concord%C3%A2ncia_verbal",
+            type = LearningResourceType.LINK, classId = portuguese.id,
+            deckId = grammar?.id.orEmpty(),
+            tags = listOf("gramática"), lessonId = completed.id
+        ))
+        feedbacks.add(LessonFeedback(
+            id = "demo-feedback-1", classId = portuguese.id, lessonId = completed.id,
+            studentId = "@aluno-demo", understanding = FeedbackUnderstanding.PARTIAL,
+            comment = "A explicação foi boa, mas preciso de mais exemplos."
+        ))
+        feedbacks.add(LessonFeedback(
+            id = "demo-feedback-2", classId = portuguese.id, lessonId = completed.id,
+            studentId = "@aluna-maria", understanding = FeedbackUnderstanding.DIFFICULT,
+            comment = "Gostaria de rever o conteúdo do slide final."
+        ))
+        prefs.edit().putBoolean("sample_initialized", true).apply()
+        persist()
     }
 
     private fun lessonsRef(classId: String) = db!!.collection("classes").document(classId).collection("lessons")
