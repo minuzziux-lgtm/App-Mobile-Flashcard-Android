@@ -29,6 +29,7 @@ import com.example.myapplication.demo.DemoCard
 import com.example.myapplication.demo.DemoCardType
 import com.example.myapplication.demo.DemoClass
 import com.example.myapplication.demo.DemoDeck
+import com.example.myapplication.learning.LearningResource
 import com.example.myapplication.study.StudyRecall
 import com.example.myapplication.study.StudyReview
 import java.util.UUID
@@ -53,7 +54,8 @@ fun StudentDecksScreen(
     studentId: String = "@aluno-demo",
     launchStudyRequest: Int = 0,
     launchDueOnly: Boolean = false,
-    onReturnHome: () -> Unit = {}
+    onReturnHome: () -> Unit = {},
+    extraResources: List<LearningResource> = emptyList()
 ) {
     var selectedDeckId by rememberSaveable { mutableStateOf<String?>(null) }
     var lastHandledStudyRequest by rememberSaveable { mutableIntStateOf(0) }
@@ -249,6 +251,19 @@ fun StudentDecksScreen(
                             Spacer(Modifier.height(24.dp))
                     SectionLabel("03  /  CARTÕES DE " + selectedDeck.title.uppercase())
                     Spacer(Modifier.height(16.dp))
+                    val deckMaterials = extraResources.filter {
+                        it.deckId == selectedDeck.id && it.cardId.isBlank()
+                    }
+                    if (deckMaterials.isNotEmpty()) {
+                        SectionLabel("MATERIAIS DO DECK")
+                        Spacer(Modifier.height(12.dp))
+                        deckMaterials.forEach { material ->
+                            StudentSectionRow(material.title, "Abrir material de apoio") {
+                                uriHandler.openUri(material.url)
+                            }
+                        }
+                        Spacer(Modifier.height(36.dp))
+                    }
                     val visibleCards = cards.filter { it.deckId == selectedDeck.id }
                     if (visibleCards.isEmpty()) {
                         ScreenText("Este deck ainda não possui cartões.")
@@ -335,6 +350,12 @@ fun StudentDecksScreen(
                                         color = MyDeckDesign.ink
                                     )
                                 )
+                            }
+                            extraResources.filter { it.cardId == card.id }.forEach { material ->
+                                Spacer(Modifier.height(10.dp))
+                                StudentSectionRow(material.title, "Material deste cartão") {
+                                    uriHandler.openUri(material.url)
+                                }
                             }
                             Spacer(Modifier.height(32.dp))
                         }
