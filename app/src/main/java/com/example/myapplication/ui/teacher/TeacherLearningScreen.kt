@@ -66,6 +66,8 @@ internal fun TeacherLearningScreen(
             TeacherSelectionRow(item.name, selectedClass == item.id) {
                 selectedClass = item.id
                 selectedLesson = ""
+                selectedDeck = ""
+                materialCardId = ""
                 showCreate = false
             }
         }
@@ -86,6 +88,7 @@ internal fun TeacherLearningScreen(
                         if (item.status == LessonStatus.COMPLETED) "Concluída"
                         else "Planejada · ${item.cards.size} cartões em rascunho") {
                         selectedLesson = item.id
+                        selectedDeck = item.deckId
                         editingLesson = false
                         title = item.title
                         description = item.description
