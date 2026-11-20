@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.demo.DemoClass
 import com.example.myapplication.demo.DemoDeck
 import com.example.myapplication.demo.DemoParticipant
+import com.example.myapplication.ui.student.StudentActivityHeatmap
 import com.example.myapplication.study.StudyReview
 import com.example.myapplication.study.summarizeReviews
 import com.example.myapplication.study.difficultTags
@@ -83,9 +84,11 @@ internal fun TeacherPerformanceSection(
         TeacherMetric("Acertos", summary.correct, Modifier.weight(1f))
         TeacherMetric("Taxa (%)", summary.accuracyPercent, Modifier.weight(1f))
     }
-    Spacer(Modifier.height(35.dp))
-    TeacherDivider()
-    Spacer(Modifier.height(20.dp))
+    Spacer(Modifier.height(46.dp))
+    TeacherLabel("FREQUÊNCIA DE ESTUDOS")
+    Spacer(Modifier.height(18.dp))
+    StudentActivityHeatmap(visibleReviews)
+    Spacer(Modifier.height(48.dp))
     TeacherLabel("02 / TURMAS")
     Spacer(Modifier.height(16.dp))
     if (classes.isEmpty()) TeacherEmpty("Nenhuma turma disponível.")
