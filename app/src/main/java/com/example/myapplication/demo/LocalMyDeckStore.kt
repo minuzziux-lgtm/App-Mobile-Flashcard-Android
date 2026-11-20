@@ -37,30 +37,76 @@ class LocalMyDeckStore(context: Context? = null, namespace: String = "demo") {
         return code
     }
 
-    /** Disponível para testes: só povoa uma biblioteca local completamente vazia. */
+    /**
+     * Prévia determinística para avaliar professor e aluno sem Firebase.
+     * Não substitui conteúdo existente nem é utilizada em contas autenticadas.
+     */
     fun seedDemoScenario(): Boolean {
         if (classes.isNotEmpty() || decks.isNotEmpty() || cards.isNotEmpty()) return false
-        val classroom = createClass("Turma demonstração")
-        val deck = createDeck(classroom.id, "Exemplos de flashcards")
-        addCard(deck.id, DemoCardDraft(
-            DemoCardType.BASIC, "Qual é a capital do Brasil?", "Brasília", tags = listOf("geografia")
-        ))
-        addCard(deck.id, DemoCardDraft(
-            DemoCardType.MULTIPLE_CHOICE, "Quanto é 2 + 2?", "4",
-            tags = listOf("matemática"), options = listOf("3", "4", "5"), correctOptionIndex = 1
-        ))
-        addCard(deck.id, DemoCardDraft(
-            DemoCardType.CLOZE, "O sol nasce no ___.", "leste", tags = listOf("geografia")
-        ))
-        addCard(deck.id, DemoCardDraft(
-            DemoCardType.REVERSIBLE, "Hello", "Olá", tags = listOf("idiomas"),
-            frontLanguage = "Inglês", backLanguage = "Português"
-        ))
-        addCard(deck.id, DemoCardDraft(
-            DemoCardType.OPEN_ENDED, "Explique com suas palavras o que é aprender.",
-            tags = listOf("reflexão")
-        ))
-        joinByCode(classroom.joinCode)
+        val grammar = createClass("Língua Portuguesa — 1º ano")
+        val math = createClass("Matemática — 1º ano")
+        val science = createClass("Ciências — 2º ano")
+        val portugueseDeck = createDeck(grammar.id, "Gramática e concordância")
+        val readingDeck = createDeck(grammar.id, "Interpretação de texto")
+        val fractionsDeck = createDeck(math.id, "Frações e proporções")
+        val scienceDeck = createDeck(science.id, "Células e organismos")
+        assignDeckToClasses(readingDeck.id, listOf(grammar.id, science.id))
+        val examples = listOf(
+            Triple(portugueseDeck.id, "Qual é o sujeito em 'Os alunos estudam'?", "Os alunos"),
+            Triple(portugueseDeck.id, "Quando usar o verbo no plural?", "Quando concorda com sujeito plural"),
+            Triple(portugueseDeck.id, "O que é um substantivo?", "Palavra que nomeia seres e conceitos"),
+            Triple(readingDeck.id, "Qual é a ideia principal de um texto?", "A mensagem central do texto"),
+            Triple(readingDeck.id, "O que é inferência?", "Uma conclusão apoiada por pistas do texto"),
+            Triple(fractionsDeck.id, "Quanto é 1/2 + 1/4?", "3/4"),
+            Triple(fractionsDeck.id, "Quanto é 25% de 100?", "25"),
+            Triple(scienceDeck.id, "O que são seres eucariontes?", "Seres com células de núcleo delimitado"),
+            Triple(scienceDeck.id, "Qual organela realiza fotossíntese?", "Cloroplasto")
+        )
+        val tagged = examples.mapIndexed { i, (deckId, question, answer) ->
+            addCard(deckId, DemoCardDraft(
+                type = DemoCardType.BASIC,
+                question = question, answer = answer,
+                tags = listOf(when {
+                    i <= 2 -> "gramática"
+                    i <= 4 -> "interpretação"
+                    i <= 6 -> "frações"
+                    else -> "biologia"
+                })
+            ))
+        }
+        joinByCode(grammar.joinCode)
+        joinByCode(math.joinCode)
+        joinByCode(science.joinCode)
+        addDemoParticipant(grammar.id, "aluna-maria")
+        addDemoParticipant(grammar.id, "aluno-pedro")
+        addDemoParticipant(math.id, "aluna-luiza")
+        val now = System.currentTimeMillis()
+        val oneDay = 86_400_000L
+        val reviewCards = tagged.take(7)
+        // 12 semanas de atividade, incluindo dias sem estudo e taxas por assunto.
+        repeat(84) { day ->
+            if (day % 5 != 0 && day % 7 != 0) {
+                val card = reviewCards[day % reviewCards.size]
+                val at = now - (83 - day) * oneDay
+                val evaluated = day % 11 != 0
+                reviews.add(StudyReview(
+                    id = "demo-review-$day",
+                    studentId = "@aluno-demo",
+                    deckId = card.deckId,
+                    cardId = card.id,
+                    classId = when (card.deckId) {
+                        portugueseDeck.id, readingDeck.id -> grammar.id
+                        else -> math.id
+                    },
+                    correct = if (!evaluated) null else if ("gramática" in card.tags) day % 5 == 1 else day % 4 != 0,
+                    writtenResponse = if (evaluated) null else "Resposta livre de demonstração",
+                    tags = card.tags,
+                    reviewedAtEpochMillis = at,
+                    dueAtEpochMillis = at
+                ))
+            }
+        }
+        persist()
         return true
     }
 
