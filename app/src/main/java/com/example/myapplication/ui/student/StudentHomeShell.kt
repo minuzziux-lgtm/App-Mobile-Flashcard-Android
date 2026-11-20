@@ -200,12 +200,12 @@ fun StudentHomeShell(
                 .padding(horizontal = 26.dp)
         )
 
-        BottomFrostedBackdrop(
+        if (!showProfile) BottomFrostedBackdrop(
             hazeState = hazeState,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
 
-        MyDeckBottomBar(
+        if (!showProfile) MyDeckBottomBar(
             currentId = currentRoute,
             items = StudentTab.entries.map { MyDeckNavItem(it.route, it.label) },
             hazeState = hazeState,
