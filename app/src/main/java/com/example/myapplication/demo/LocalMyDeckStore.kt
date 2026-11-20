@@ -43,6 +43,12 @@ class LocalMyDeckStore(context: Context? = null, namespace: String = "demo") {
      */
     fun seedDemoScenario(): Boolean {
         if (classes.isNotEmpty() || decks.isNotEmpty() || cards.isNotEmpty()) return false
+        return ensureDemoScenario()
+    }
+
+    /** Acrescenta amostras à prévia existente, preservando turmas e cartões do usuário. */
+    fun ensureDemoScenario(): Boolean {
+        if (classes.any { it.name == "Língua Portuguesa — 1º ano" }) return false
         val grammar = createClass("Língua Portuguesa — 1º ano")
         val math = createClass("Matemática — 1º ano")
         val science = createClass("Ciências — 2º ano")
