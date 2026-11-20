@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.student
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +16,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.ui.design.MyDeckDesign
 import com.example.myapplication.study.StudyReview
 import com.example.myapplication.study.activityByDay
 import com.example.myapplication.study.localDayStart
@@ -35,23 +38,23 @@ fun StudentActivityHeatmap(reviews: List<StudyReview>, now: Long = System.curren
         HistoryHeader("ATIVIDADE — ÚLTIMOS 84 DIAS")
         Spacer(Modifier.height(15.dp))
         Row(
-            modifier = Modifier.semantics {
+            modifier = Modifier.horizontalScroll(rememberScrollState()).semantics {
                 contentDescription = "Frequência de estudo dos últimos 84 dias. " +
                     "${days.sumOf { counts[it] ?: 0 }} revisões registradas nesse período."
             },
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             days.chunked(7).forEach { week ->
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     week.forEach { day ->
                         val count = counts[day] ?: 0
                         val color = when {
-                            count == 0 -> Color(0xFFE7E7E5)
-                            count <= 2 -> Color(0xFFB6B6B3)
-                            count <= 5 -> Color(0xFF777773)
-                            else -> Color(0xFF242424)
+                            count == 0 -> if (MyDeckDesign.darkMode) Color(0xFF303030) else Color(0xFFECECE9)
+                            count <= 2 -> if (MyDeckDesign.darkMode) Color(0xFF575755) else Color(0xFFC6C6C1)
+                            count <= 5 -> if (MyDeckDesign.darkMode) Color(0xFF939391) else Color(0xFF898984)
+                            else -> if (MyDeckDesign.darkMode) Color(0xFFE8E8E5) else Color(0xFF272727)
                         }
-                        Box(Modifier.size(12.dp).background(color))
+                        Box(Modifier.size(13.dp).background(color))
                     }
                 }
             }
