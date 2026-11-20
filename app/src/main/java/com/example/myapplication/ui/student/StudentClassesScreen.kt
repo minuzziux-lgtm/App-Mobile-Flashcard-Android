@@ -84,7 +84,8 @@ fun StudentClassesScreen(
                         }
                         field()
                     }
-                            }
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(MyDeckDesign.inputLine))
+                }
             }
         )
         Spacer(Modifier.height(20.dp))
