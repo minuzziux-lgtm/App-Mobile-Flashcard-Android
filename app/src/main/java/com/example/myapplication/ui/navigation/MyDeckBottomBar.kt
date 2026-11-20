@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.navigation
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,9 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
@@ -62,12 +66,16 @@ fun MyDeckBottomBar(
         ) {
             items.forEach { item ->
                 val isSelected = currentId == item.id
+                val selectionAlpha by animateFloatAsState(
+                    targetValue = if (isSelected) 1f else 0f,
+                    animationSpec = tween(durationMillis = 200),
+                    label = "selecao-aba"
+                )
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(CircleShape)
-                        .then(if (isSelected) Modifier.background(activeSurface, CircleShape) else Modifier)
                         .semantics {
                             selected = isSelected
                             contentDescription = item.label
@@ -75,6 +83,11 @@ fun MyDeckBottomBar(
                         .clickable(role = Role.Tab) { onNavigate(item.id) },
                     contentAlignment = Alignment.Center
                 ) {
+                    Box(
+                        Modifier.matchParentSize().clip(CircleShape)
+                            .graphicsLayer { alpha = selectionAlpha }
+                            .background(activeSurface, CircleShape)
+                    )
                     BasicText(
                         text = item.label,
                         style = TextStyle(
