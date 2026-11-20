@@ -86,7 +86,7 @@ fun StudentSection(
                         color = MyDeckDesign.secondary
                     )
                 )
-                Spacer(Modifier.height(48.dp))
+                Spacer(Modifier.height(64.dp))
                 content()
             }
         }
