@@ -36,6 +36,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.demo.LocalMyDeckStore
+import com.example.myapplication.learning.LearningFeatureStore
 import com.example.myapplication.ui.design.MyDeckButton
 import com.example.myapplication.ui.design.MyDeckButtonVariant
 import com.example.myapplication.ui.navigation.BottomFrostedBackdrop
@@ -60,12 +61,21 @@ fun StudentHomeShell(
     val hazeState = remember { HazeState() }
     var selectedClassId by rememberSaveable { mutableStateOf<String?>(null) }
     var showProfile by rememberSaveable { mutableStateOf(false) }
+    var showLearning by rememberSaveable { mutableStateOf(false) }
+    val featureContext = LocalContext.current
+    val learning = remember(featureContext, studentId, cloud) {
+        LearningFeatureStore(featureContext, if (cloud != null) studentId else null)
+    }
+    LaunchedEffect(store.classes.map { it.id }, cloud) {
+        learning.refresh(store.classes.map { it.id }, teacher = false)
+    }
     var studyLaunchRequest by rememberSaveable { mutableIntStateOf(0) }
     var studyDueOnly by rememberSaveable { mutableStateOf(false) }
     val currentRoute = currentEntry?.destination?.route ?: StudentTab.HOME.route
 
     fun navigateTo(tab: StudentTab) {
         showProfile = false
+        showLearning = false
         if (tab == StudentTab.HOME) {
             // O início permanece na base da pilha; não empilhe cópias da Home.
             if (!nav.popBackStack(StudentTab.HOME.route, inclusive = false) &&
@@ -88,8 +98,12 @@ fun StudentHomeShell(
         navigateTo(StudentTab.DECKS)
     }
 
-    BackHandler(enabled = showProfile || currentRoute != StudentTab.HOME.route) {
-        if (showProfile) showProfile = false else navigateTo(StudentTab.HOME)
+    BackHandler(enabled = showProfile || showLearning || currentRoute != StudentTab.HOME.route) {
+        when {
+            showProfile -> showProfile = false
+            showLearning -> showLearning = false
+            else -> navigateTo(StudentTab.HOME)
+        }
     }
 
     Box(
@@ -148,12 +162,16 @@ fun StudentHomeShell(
                     )
                 }
                 composable(StudentTab.CLASSES.route) {
-                    StudentClassesScreen(
+                    if (showLearning) {
+                        StudentLearningScreen(store, learning, studentId,
+                            onBack = { showLearning = false })
+                    } else StudentClassesScreen(
                         classes = store.classes.filter { it.id in store.enrolledForStudent(studentId) },
                         deckCounts = store.classes.associate { classroom ->
                             classroom.id to store.decks.count { classroom.id in it.assignedClassIds }
                         },
                         onJoinClass = { code -> store.joinByCode(code, studentId) },
+                        onOpenLearning = { showLearning = true },
                         onOpenDecks = { classId ->
                             selectedClassId = classId
                             navigateTo(StudentTab.DECKS)
@@ -200,12 +218,12 @@ fun StudentHomeShell(
                 .padding(horizontal = 26.dp)
         )
 
-        if (!showProfile) BottomFrostedBackdrop(
+        if (!showProfile && !showLearning) BottomFrostedBackdrop(
             hazeState = hazeState,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
 
-        if (!showProfile) MyDeckBottomBar(
+        if (!showProfile && !showLearning) MyDeckBottomBar(
             currentId = currentRoute,
             items = StudentTab.entries.map { MyDeckNavItem(it.route, it.label) },
             hazeState = hazeState,
