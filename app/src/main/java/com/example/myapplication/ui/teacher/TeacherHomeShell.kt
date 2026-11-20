@@ -77,6 +77,7 @@ fun TeacherHomeShell(
     val featureContext = LocalContext.current
     val learning = remember(featureContext, uid) { LearningFeatureStore(featureContext, uid) }
     LaunchedEffect(classes.map { it.id }, uid) {
+        if (uid == null) learning.seedDemoContent(store)
         learning.refresh(classes.map { it.id }, teacher = true)
     }
     val decks = store.decks
