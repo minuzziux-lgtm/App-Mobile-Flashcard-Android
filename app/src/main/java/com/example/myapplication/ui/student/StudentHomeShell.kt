@@ -70,6 +70,7 @@ fun StudentHomeShell(
         LearningFeatureStore(featureContext, if (cloud != null) studentId else null)
     }
     LaunchedEffect(store.classes.map { it.id }, cloud) {
+        if (cloud == null) learning.seedDemoContent(store)
         learning.refresh(store.classes.map { it.id }, teacher = false)
     }
     var studyLaunchRequest by rememberSaveable { mutableIntStateOf(0) }
