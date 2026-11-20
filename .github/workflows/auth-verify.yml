@@ -41,6 +41,15 @@ jobs:
         run: |
           ./gradlew --no-daemon --console=plain :app:assembleDebug :app:testDebugUnitTest
 
+      - name: Publicar APK debug para instalacao no celular
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mydeck-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Guardar relatorios de teste
         if: always()
         uses: actions/upload-artifact@v4
