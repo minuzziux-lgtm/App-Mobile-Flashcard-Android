@@ -2,6 +2,8 @@ package com.example.myapplication.ui.student
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -137,7 +139,13 @@ fun StudySessionScreen(
                                 value = openInput,
                                 onValueChange = { openInput = it.take(2000) },
                                 textStyle = TextStyle(fontFamily = MyDeckDesign.font, fontSize = 16.sp, color = MyDeckDesign.ink),
-                                modifier = Modifier.fillMaxWidth().background(MyDeckDesign.fieldBackground).padding(16.dp)
+                                modifier = Modifier.fillMaxWidth().background(MyDeckDesign.fieldBackground)
+                                    .drawBehind {
+                                        drawLine(
+                                            MyDeckDesign.inputLine, Offset(0f, size.height),
+                                            Offset(size.width, size.height), strokeWidth = 1.dp.toPx()
+                                        )
+                                    }.padding(16.dp)
                                     .semantics { contentDescription = "Campo para resposta livre" }
                             )
                         }
@@ -151,7 +159,13 @@ fun StudySessionScreen(
                                     fontFamily = MyDeckDesign.font, fontSize = 16.sp,
                                     color = MyDeckDesign.ink
                                 ),
-                                modifier = Modifier.fillMaxWidth().background(MyDeckDesign.fieldBackground).padding(16.dp)
+                                modifier = Modifier.fillMaxWidth().background(MyDeckDesign.fieldBackground)
+                                    .drawBehind {
+                                        drawLine(
+                                            MyDeckDesign.inputLine, Offset(0f, size.height),
+                                            Offset(size.width, size.height), strokeWidth = 1.dp.toPx()
+                                        )
+                                    }.padding(16.dp)
                                     .semantics { contentDescription = "Campo para completar a lacuna" }
                             )
                         }
