@@ -55,6 +55,11 @@ fun StudentLearningScreen(
         description = "Acompanhe as aulas, encontre materiais e compartilhe suas dificuldades."
     ) {
         MyDeckButton("Voltar", MyDeckButtonVariant.LIGHT, onClick = onBack)
+        if (learning.isCloud) {
+            Spacer(Modifier.height(10.dp))
+            MyDeckButton("Atualizar aulas e materiais", MyDeckButtonVariant.LIGHT,
+                onClick = { learning.refresh(classes.map { it.id }, teacher = false) })
+        }
         Spacer(Modifier.height(34.dp))
         HistoryHeader("REVISÕES RECOMENDADAS")
         Spacer(Modifier.height(14.dp))
