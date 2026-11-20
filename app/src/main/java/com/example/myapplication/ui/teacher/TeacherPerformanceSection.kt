@@ -31,6 +31,7 @@ internal fun TeacherPerformanceSection(
     cloudMode: Boolean = false
 ) {
     var student by rememberSaveable { mutableStateOf<String?>(null) }
+    var showPeriodFilters by rememberSaveable { mutableStateOf(false) }
     var selectedYear by rememberSaveable { mutableStateOf<Int?>(null) }
     var selectedMonth by rememberSaveable { mutableStateOf<Int?>(null) }
     val visibleReviews = filterReviewsByPeriod(reviews, selectedYear, selectedMonth)
@@ -50,22 +51,29 @@ internal fun TeacherPerformanceSection(
     Spacer(Modifier.height(20.dp))
     TeacherLabel("PERÍODO")
     Spacer(Modifier.height(12.dp))
-    TeacherSelectionRow("Todos os anos", selectedYear == null) {
-        selectedYear = null
-        selectedMonth = null
+    TeacherAction(if (showPeriodFilters) "Ocultar períodos" else "Escolher período") {
+        showPeriodFilters = !showPeriodFilters
     }
-    availableYears.forEach { year ->
-        TeacherSelectionRow(year.toString(), selectedYear == year) {
-            selectedYear = year
+    if (showPeriodFilters) {
+        TeacherLabel("PERÍODO")
+        Spacer(Modifier.height(12.dp))
+        TeacherSelectionRow("Todos os anos", selectedYear == null) {
+            selectedYear = null
             selectedMonth = null
         }
-    }
-    if (selectedYear != null) {
-        val months = listOf("Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez")
-        TeacherSelectionRow("Todos os meses", selectedMonth == null) { selectedMonth = null }
-        months.forEachIndexed { index, name ->
-            TeacherSelectionRow(name, selectedMonth == index) {
-                selectedMonth = if (selectedMonth == index) null else index
+        availableYears.forEach { year ->
+            TeacherSelectionRow(year.toString(), selectedYear == year) {
+                selectedYear = year
+                selectedMonth = null
+            }
+        }
+        if (selectedYear != null) {
+            val months = listOf("Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez")
+            TeacherSelectionRow("Todos os meses", selectedMonth == null) { selectedMonth = null }
+            months.forEachIndexed { index, name ->
+                TeacherSelectionRow(name, selectedMonth == index) {
+                    selectedMonth = if (selectedMonth == index) null else index
+                }
             }
         }
     }
