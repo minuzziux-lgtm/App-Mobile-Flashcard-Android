@@ -255,8 +255,8 @@ fun TeacherHomeShell(
                 .padding(horizontal = 26.dp)
         )
 
-        BottomFrostedBackdrop(hazeState, Modifier.align(Alignment.BottomCenter))
-        MyDeckBottomBar(
+        if (!showProfile) BottomFrostedBackdrop(hazeState, Modifier.align(Alignment.BottomCenter))
+        if (!showProfile) MyDeckBottomBar(
             currentId = activeTab.name,
             items = TeacherTab.entries.map { MyDeckNavItem(it.name, it.label) },
             hazeState = hazeState,
