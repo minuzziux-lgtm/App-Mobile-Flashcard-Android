@@ -86,6 +86,7 @@ fun TeacherHomeShell(
     var tab by rememberSaveable { mutableStateOf(TeacherTab.HOME.name) }
     val activeTab = TeacherTab.entries.firstOrNull { it.name == tab } ?: TeacherTab.HOME
     val hazeState = remember { HazeState() }
+    val motionEnabled = com.example.myapplication.ui.design.myDeckMotionEnabled()
     var showProfile by rememberSaveable { mutableStateOf(false) }
     BackHandler(enabled = showProfile || showLearning) {
         if (showProfile) showProfile = false else showLearning = false
@@ -118,7 +119,10 @@ fun TeacherHomeShell(
                 androidx.compose.animation.AnimatedContent(
                     targetState = Triple(showProfile, activeTab, showLearning),
                     transitionSpec = {
-                        (androidx.compose.animation.fadeIn(
+                        if (!motionEnabled) {
+                            androidx.compose.animation.EnterTransition.None togetherWith
+                                androidx.compose.animation.ExitTransition.None
+                        } else (androidx.compose.animation.fadeIn(
                             animationSpec = androidx.compose.animation.core.tween(220, delayMillis = 35)
                         ) + androidx.compose.animation.slideInVertically(
                             animationSpec = androidx.compose.animation.core.tween(240),
